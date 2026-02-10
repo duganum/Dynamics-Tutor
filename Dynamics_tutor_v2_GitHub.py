@@ -129,8 +129,10 @@ elif st.session_state.page == "chat":
         st.image(render_problem_diagram(prob), width=400)
     
     with cols[1]:
-        st.metric("Variables Found", f"{len(solved)} / {len(prob['targets'])}")
-        st.progress(len(solved) / len(prob['targets']) if len(prob['targets']) > 0 else 0)
+        # --- Variables Found & Progress Bar Removed ---
+        st.markdown("### 📝 Session Analysis")
+        st.write("Work through the derivation with the tutor below. Focus on using correct LaTeX notation and physical principles.")
+        
         feedback = st.text_area("Notes for Dr. Um:", placeholder="What was the hardest part?")
         if st.button("⬅️ Submit Session", use_container_width=True):
             history_text = ""
@@ -138,9 +140,12 @@ elif st.session_state.page == "chat":
                 for msg in st.session_state.chat_sessions[p_id].history:
                     role = "Tutor" if msg.role == "model" else "Student"
                     history_text += f"{role}: {msg.parts[0].text}\n"
-            report = analyze_and_send_report(st.session_state.user_name, prob['category'], history_text + feedback)
-            st.session_state.last_report = report
-            st.session_state.page = "report_view"; st.rerun()
+            
+            with st.spinner("Analyzing mastery..."):
+                report = analyze_and_send_report(st.session_state.user_name, prob['category'], history_text + feedback)
+                st.session_state.last_report = report
+                st.session_state.page = "report_view"
+                st.rerun()
 
     st.markdown("---")
     hw_title = prob.get("hw_title", "")
@@ -169,6 +174,7 @@ elif st.session_state.page == "chat":
         st.write("👋 **Tutor Ready.** Please describe the first step of your analysis to begin.")
 
     if user_input := st.chat_input("Your analysis..."):
+        # Backend solving logic remains for reporting purposes, though visual is gone
         for target, val in prob['targets'].items():
             if target not in solved and check_numeric_match(user_input, val):
                 st.session_state.grading_data[p_id]['solved'].add(target)
