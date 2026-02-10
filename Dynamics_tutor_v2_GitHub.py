@@ -79,11 +79,19 @@ if st.session_state.page == "landing":
     st.subheader("📝 Engineering Review Problems")
     categories = {}
     for p in PROBLEMS:
-        cat_main = p.get('category', 'General').split(":")[0].strip()
-        if cat_main == "Kinematics":
+        # Extract category and strip "HW X" prefixes
+        raw_cat = p.get('category', 'General').split(":")[0].strip()
+        clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").strip()
+        
+        # Standardize naming for display headers
+        if "kinematics" in clean_cat.lower() and "particle" not in clean_cat.lower():
             cat_main = "Particle Kinematics"
-        elif "HW 6" in cat_main:
+        elif "curvilinear" in clean_cat.lower():
+            cat_main = "Kinetics of Particles (Curvilinear)"
+        elif "rectilinear" in clean_cat.lower():
             cat_main = "Kinetics of Particles (Rectilinear)"
+        else:
+            cat_main = clean_cat
             
         if cat_main not in categories: categories[cat_main] = []
         categories[cat_main].append(p)
@@ -142,7 +150,7 @@ elif st.session_state.page == "chat":
     else:
         st.markdown(f"**{prob.get('category', 'Engineering Review')}**")
 
-    # Chat Logic
+    # Chat Logic with Error Handling
     if p_id not in st.session_state.chat_sessions:
         sys_prompt = (
             f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
@@ -165,11 +173,10 @@ elif st.session_state.page == "chat":
             if target not in solved and check_numeric_match(user_input, val):
                 st.session_state.grading_data[p_id]['solved'].add(target)
         
-        # ERROR HANDLING FOR RATE LIMITS
         try:
             st.session_state.chat_sessions[p_id].send_message(user_input)
             st.rerun()
-        except Exception as e:
+        except Exception:
             st.warning("⚠️ The professor is a little busy right now. Please try again in a minute.")
 
 # --- Page 3: Interactive Lecture ---
@@ -188,19 +195,14 @@ elif st.session_state.page == "lecture":
         elif topic == "Polar Coordinates":
             params['r'] = st.slider("r", 1, 50, 20); params['theta'] = st.slider("theta", 0, 360, 45)
         elif topic == "Relative Motion":
-            v_ax = st.slider("vA_x", -20, 20, 15)
-            v_ay = st.slider("vA_y", -20, 20, 5)
-            v_bx = st.slider("vB_x", -20, 20, 10)
-            v_by = st.slider("vB_y", -20, 20, -5)
-            params['vA'] = [v_ax, v_ay]; params['vB'] = [v_bx, v_by]
+            params['vA'] = [st.slider("vA_x", -20, 20, 15), st.slider("vA_y", -20, 20, 5)]
+            params['vB'] = [st.slider("vB_x", -20, 20, 10), st.slider("vB_y", -20, 20, -5)]
             st.latex(r"\vec{v}_A = \vec{v}_B + \vec{v}_{A/B}")
         
         st.image(render_lecture_visual(topic, params))
         
         st.markdown("---")
-        st.subheader("📊 Session Completion")
         lecture_feedback = st.text_area("Final Summary:", placeholder="Summarize the governing equations.")
-        
         if st.button("🚀 Submit Lecture Report (Score 0-10)", use_container_width=True):
             history_text = ""
             if st.session_state.lecture_session:
@@ -209,7 +211,7 @@ elif st.session_state.page == "lecture":
                     history_text += f"{role}: {msg.parts[0].text}\n"
             
             with st.spinner("Analyzing mastery..."):
-                report = analyze_and_send_report(st.session_state.user_name, f"LECTURE: {topic}", history_text + f"\n--- STUDENT FEEDBACK ---\n{lecture_feedback}")
+                report = analyze_and_send_report(st.session_state.user_name, f"LECTURE: {topic}", history_text + lecture_feedback)
                 st.session_state.last_report = report
                 st.session_state.page = "report_view"; st.rerun()
 
@@ -219,30 +221,22 @@ elif st.session_state.page == "lecture":
     with col_chat:
         st.subheader("💬 Socratic Discussion")
         if st.session_state.lecture_session is None:
-            sys_msg = (
-                f"You are a Professor at TAMUCC teaching {topic}. Respond only in English and use LaTeX. "
-                "Guide the student through the vector derivations or equations using the Socratic method. "
-                "Do not give answers immediately. Ask one targeted question at a time."
-            )
+            sys_msg = f"You are a Professor teaching {topic}. Respond only in English and use LaTeX."
             model = get_gemini_model(sys_msg)
             st.session_state.lecture_session = model.start_chat(history=[])
-            
-            # Initial Greeting Error Handling
             try:
-                st.session_state.lecture_session.send_message(f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, how would you define the relationship between the vectors shown?")
-            except Exception:
-                pass 
+                st.session_state.lecture_session.send_message(f"Hello {st.session_state.user_name}. How do the vectors in this {topic} simulation relate?")
+            except Exception: pass
         
         for msg in st.session_state.lecture_session.history:
             with st.chat_message("assistant" if msg.role == "model" else "user"):
                 st.markdown(msg.parts[0].text)
         
         if lecture_input := st.chat_input("Discuss the physics..."):
-            # ERROR HANDLING FOR RATE LIMITS
             try:
                 st.session_state.lecture_session.send_message(lecture_input)
                 st.rerun()
-            except Exception as e:
+            except Exception:
                 st.warning("⚠️ The professor is a little busy right now. Please try again in a minute.")
 
 # --- Page 4: Report View ---
