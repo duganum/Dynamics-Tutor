@@ -181,17 +181,51 @@
     "hw_title": "HW 6",
     "hw_subtitle": "kinetics of particles-rectilinear motion",
     "category": "HW 6 (kinetics of particles-rectilinear motion)",
-    "statement": "A 60-kg woman stands on a scale in an elevator. The scale reads 720 N. If the elevator is moving upward, what is its acceleration? Use $g = 9.81 m/s^2$.",
-    "targets": { "a": 2.19 },
-    "required_units": ["m/s^2"]
+    "statement": "A 60-kg woman holds a 9-kg package as she stands within an elevator which briefly accelerates upward at a rate of $g/4$. Determine the force $R$ which the elevator floor exerts on her feet and the lifting force $L$ which she exerts on the package during the acceleration interval. Use $g = 9.81\text{ m/s}^2$.",
+    "targets": {
+        "R": 846.1,
+        "L": 110.4
+    },
+    "required_units": ["N", "N"]
   },
   {
     "id": "HW6_32",
     "hw_title": "HW 6",
     "hw_subtitle": "kinetics of particles-rectilinear motion",
     "category": "HW 6 (kinetics of particles-rectilinear motion)",
-    "statement": "Determine the acceleration of the 5-kg block A when the system is released from rest. Neglect the mass of the pulleys and friction.",
-    "targets": { "a_A": 1.635 },
-    "required_units": ["m/s^2"]
+    "statement": "The sliders A (2 kg) and B (3 kg) are connected by a light rigid bar of length $l = 0.5$ m and move with negligible friction in horizontal slots. For the position where $x_A = 0.4$ m, the velocity of A is $v_A = 0.9$ m/s to the right. A constant force $P = 40$ N is applied to slider A. Determine the acceleration of each slider and the force in the bar at this instant.",
+    "targets": {
+        "a_A": 12.18,
+        "a_B": -14.65,
+        "F_bar": 19.55
+    },
+    "required_units": ["m/s^2", "m/s^2", "N"]
+  },
+  {
+    "id": "HW7_47",
+    "hw_title": "HW 7",
+    "hw_subtitle": "kinetics of particles-curvilinear motion",
+    "category": "HW 7 (kinetics of particles-curvilinear motion)",
+    "statement": "The small 0.6-kg block slides with a small amount of friction on the circular path of radius 3 m in the vertical plane. If the speed of the block is 5 m/s as it passes point A and 4 m/s as it passes point B, determine the normal force exerted on the block by the surface at each of these two locations.",
+    "targets": { "N_A": 10.89, "N_B": 8.29 },
+    "required_units": ["n"]
+  },
+  {
+    "id": "HW7_64",
+    "hw_title": "HW 7",
+    "hw_subtitle": "kinetics of particles-curvilinear motion",
+    "category": "HW 7 (kinetics of particles-curvilinear motion)",
+    "statement": "A 3220-lb car enters an S-curve at A with a speed of 60 mi/hr with brakes applied to reduce the speed to 45 mi/hr at a uniform rate in a distance of 300 ft measured along the curve from A to B. The radius of curvature of the path of the car at B is 600 ft. Calculate the total friction force exerted by the road on the tires at B. The road at B lies in a horizontal plane.",
+    "targets": { "F_f": 1240 },
+    "required_units": ["lb"]
+  },
+  {
+    "id": "HW7_67",
+    "hw_title": "HW 7",
+    "hw_subtitle": "kinetics of particles-curvilinear motion",
+    "category": "HW 7 (kinetics of particles-curvilinear motion)",
+    "statement": "The hollow tube assembly rotates about a vertical axis with angular velocity $\\omega = \\dot{\\theta} = 4$ rad/s and $\\dot{\\omega} = \\ddot{\\theta} = -2$ rad/s$^2$. A small 0.2-kg slider $P$ moves inside the horizontal tube portion under the control of the string which passes out the bottom of the assembly. If $r = 0.8$ m, $\\dot{r} = -2$ m/s, and $\\ddot{r} = 4$ m/s$^2$, determine the tension $T$ in the string and the horizontal force $F_\\theta$ exerted on the slider by the tube.",
+    "targets": { "T": 1.76, "F_theta": 1.28 },
+    "required_units": ["n"]
   }
 ]
