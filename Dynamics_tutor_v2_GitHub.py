@@ -179,11 +179,12 @@ elif st.session_state.page == "chat":
             if target not in solved and check_numeric_match(user_input, val):
                 st.session_state.grading_data[p_id]['solved'].add(target)
         
-        try:
-            st.session_state.chat_sessions[p_id].send_message(user_input)
-            st.rerun()
-        except Exception:
-            st.warning("⚠️ The professor is a little busy right now. Please try again in a minute.")
+        # Error handling
+        #try:
+         #   st.session_state.chat_sessions[p_id].send_message(user_input)
+          #  st.rerun()
+        #except Exception:
+         #   st.warning("⚠️ The professor is a little busy right now. Please try again in a minute.")
 
 # --- Page 3: Interactive Lecture ---
 elif st.session_state.page == "lecture":
@@ -251,4 +252,5 @@ elif st.session_state.page == "report_view":
     st.markdown(st.session_state.get("last_report", "No report available."))
     if st.button("Return to Main Menu"):
         st.session_state.page = "landing"; st.rerun()
+
 
