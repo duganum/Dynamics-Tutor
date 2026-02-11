@@ -67,14 +67,12 @@ def render_problem_diagram(prob):
         hw_subtitle = prob.get("hw_subtitle")
         
         if hw_title and hw_subtitle:
-            # Handles the double spacing in directory "HW 7  (kinetics...)"
             if hw_title == "HW 7":
                 folder_name = f"HW 7  ({hw_subtitle})" 
             else:
                 folder_name = f"{hw_title} ({hw_subtitle})"
             
             image_filename = f"{pid.split('_')[-1]}.png"
-            # Corrected to include the nested 'images' subfolder
             img_path = os.path.join('images', folder_name, 'images', image_filename)
             
             try:
@@ -87,7 +85,6 @@ def render_problem_diagram(prob):
             except Exception:
                 pass
         
-        # Fallback for old style Kinematics IDs like K_2.2_1
         if not found:
             clean_name = pid.replace("_", "").replace(".", "").lower()
             img_path_alt = os.path.join('images', f'{clean_name}.png')
@@ -107,7 +104,14 @@ def render_problem_diagram(prob):
         ax.set_xlim(0, 1); ax.set_ylim(0, 1)
 
     ax.axis('off')
-    plt.tight_layout()
+    
+    # FIX: Wrap tight_layout in a try-except block
+    try:
+        plt.tight_layout()
+    except Exception:
+        # Fallback if tight_layout fails
+        plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+
     buf = io.BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
@@ -119,7 +123,6 @@ def render_lecture_visual(topic, params=None):
     fig, ax = plt.subplots(figsize=(6, 6), dpi=150)
     if params is None: params = {}
     
-    # Grid and Origin Settings
     ax.axhline(0, color='black', lw=1.5, zorder=2)
     ax.axvline(0, color='black', lw=1.5, zorder=2)
     ax.grid(True, linestyle=':', alpha=0.6)
@@ -150,7 +153,12 @@ def render_lecture_visual(topic, params=None):
         ax.set_xlim(-5, max(x)+5); ax.set_ylim(-5, max(y)+5)
         ax.set_title(r"Projectile Trajectory Analysis")
 
-    plt.tight_layout()
+    # FIX: Wrap tight_layout in a try-except block
+    try:
+        plt.tight_layout()
+    except Exception:
+        plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+
     buf = io.BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
