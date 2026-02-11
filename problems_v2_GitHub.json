@@ -86,7 +86,7 @@
   {
     "id": "K_2.2_1",
     "category": "Kinematics: Projectile Motion",
-    "statement": "A rocket runs out of fuel in the position shown and continues in unpowered flight above the atmosphere. If its velocity in this position was 600 mi/hr, calculate the maximum additional altitude $h$ acquired and the corresponding time $t$ to reach it. The gravitational acceleration during this phase of its flight is 30.8 ft/sec$^2$.",
+    "statement": "A rocket runs out of fuel in the position shown and continues in unpowered flight above the atmosphere. If its velocity in this position was 600 mi/hr, calculate the maximum additional altitude $h$ acquired and the corresponding time $t$ to reach it. The gravitational acceleration during this phase of its flight is 30.8 ft/sec$^2$. The angle is measured from verticle line.",
     "targets": { "h": 12590, "t": 28.6 },
     "required_units": ["ft", "s"]
   },
@@ -229,3 +229,4 @@
     "required_units": ["n"]
   }
 ]
+
