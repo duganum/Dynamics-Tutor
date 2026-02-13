@@ -148,7 +148,6 @@ elif st.session_state.page == "chat":
 
     st.markdown("---")
     
-    # PROBLEM CHAT CONTAINER (Scrollable)
     chat_container = st.container(height=400)
     with chat_container:
         if p_id not in st.session_state.chat_sessions:
@@ -186,18 +185,27 @@ elif st.session_state.page == "lecture":
     with col_sim:
         params = {}
         if topic == "Projectile Motion":
-            params['v0'] = st.slider("v0", 5, 100, 30); params['angle'] = st.slider("theta", 0, 90, 45)
+            params['v0'] = st.slider("v0", 5, 100, 30)
+            params['angle'] = st.slider("theta", 0, 90, 45)
         elif topic == "Normal & Tangent":
-            params['v'] = st.slider("v", 1, 50, 20); params['rho'] = st.slider("rho", 5, 100, 50)
+            params['v'] = st.slider("v", 1, 50, 20)
+            params['rho'] = st.slider("rho", 5, 100, 50)
             st.latex(r"a_n = \frac{v^2}{\rho}")
         elif topic == "Polar Coordinates":
-            params['r'] = st.slider("r", 1, 50, 20); params['theta'] = st.slider("theta", 0, 360, 45)
+            params['r'] = st.slider("r", 1, 50, 20)
+            params['theta'] = st.slider("theta", 0, 360, 45)
         elif topic == "Relative Motion":
             params['vA'] = [st.slider("vA_x", -20, 20, 15), st.slider("vA_y", -20, 20, 5)]
             params['vB'] = [st.slider("vB_x", -20, 20, 10), st.slider("vB_y", -20, 20, -5)]
             st.latex(r"\vec{v}_A = \vec{v}_B + \vec{v}_{A/B}")
         
-        st.image(render_lecture_visual(topic, params))
+        # Ensure render_lecture_visual handles the Normal & Tangent topic correctly with latest params
+        lecture_img = render_lecture_visual(topic, params)
+        if lecture_img:
+            st.image(lecture_img, use_container_width=True)
+        else:
+            st.error("Failed to render simulation diagram.")
+
         st.markdown("---")
         lecture_feedback = st.text_area("Final Summary:", placeholder="Provide feedback to your professor.")
         if st.button("🚀 Submit Lecture Report", use_container_width=True):
@@ -209,15 +217,17 @@ elif st.session_state.page == "lecture":
             with st.spinner("Analyzing mastery..."):
                 report = analyze_and_send_report(st.session_state.user_name, f"LECTURE: {topic}", history_text + lecture_feedback)
                 st.session_state.last_report = report
-                st.session_state.page = "report_view"; st.rerun()
+                st.session_state.page = "report_view"
+                st.rerun()
 
         if st.button("🏠 Exit", use_container_width=True):
-            st.session_state.lecture_session = None; st.session_state.page = "landing"; st.rerun()
+            st.session_state.lecture_session = None
+            st.session_state.page = "landing"
+            st.rerun()
 
     with col_chat:
         st.subheader("💬 Socratic Discussion")
         
-        # REVISION: LECTURE CHAT CONTAINER (Scrollable window for chat only)
         lecture_chat_container = st.container(height=500)
         with lecture_chat_container:
             if st.session_state.lecture_session is None:
@@ -247,4 +257,5 @@ elif st.session_state.page == "report_view":
     st.title("📊 Performance Summary")
     st.markdown(st.session_state.get("last_report", "No report available."))
     if st.button("Return to Main Menu"):
-        st.session_state.page = "landing"; st.rerun()
+        st.session_state.page = "landing"
+        st.rerun()
