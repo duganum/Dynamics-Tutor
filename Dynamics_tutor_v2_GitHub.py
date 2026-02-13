@@ -71,7 +71,6 @@ if st.session_state.page == "landing":
             if st.button(f"🎓 Lecture: {name}", key=f"lec_{pref}", use_container_width=True):
                 st.session_state.lecture_topic = name
                 st.session_state.page = "lecture"
-                # REVISION: Explicitly clear the previous session to ensure a fresh start
                 st.session_state.lecture_session = None 
                 st.rerun()
 
@@ -111,7 +110,6 @@ if st.session_state.page == "landing":
                         if st.button(f"**{sub_label}**\n({prob['id']})", key=f"btn_{prob['id']}", use_container_width=True):
                             st.session_state.current_prob = prob
                             st.session_state.page = "chat"
-                            # REVISION: Clear the problem chat session for a fresh start
                             if prob['id'] in st.session_state.chat_sessions:
                                 del st.session_state.chat_sessions[prob['id']]
                             st.rerun()
@@ -132,7 +130,7 @@ elif st.session_state.page == "chat":
     
     with cols[1]:
         st.markdown("### 📝 Session Analysis")
-        st.write("Work through the derivation with the tutor below. Focus on using correct LaTeX notation and physical principles.")
+        st.write("Work through the derivation with the tutor below.")
         
         feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide a feedback to your professor.")
         if st.button("⬅️ Submit Session", use_container_width=True):
@@ -149,31 +147,25 @@ elif st.session_state.page == "chat":
                 st.rerun()
 
     st.markdown("---")
-    hw_title = prob.get("hw_title", "")
-    hw_subtitle = prob.get("hw_subtitle", "")
-    if hw_title and hw_subtitle:
-        st.markdown(f"**{hw_title} ({hw_subtitle})**")
-    else:
-        st.markdown(f"**{prob.get('category', 'Engineering Review')}**")
+    
+    # PROBLEM CHAT CONTAINER (Scrollable)
+    chat_container = st.container(height=400)
+    with chat_container:
+        if p_id not in st.session_state.chat_sessions:
+            sys_prompt = (
+                f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
+                f"Context: {prob['statement']}. Use LaTeX for all math. "
+                "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Break every concept into tiny steps."
+            )
+            model = get_gemini_model(sys_prompt)
+            st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
 
-    if p_id not in st.session_state.chat_sessions:
-        sys_prompt = (
-            f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
-            f"Context: {prob['statement']}. Use LaTeX for all math. "
-            "STRICT SOCRATIC RULES: 1. NEVER give a full explanation or dump text. "
-            "2. If a student asks for a principle, ask a leading question that guides them to define it. "
-            "3. Break every concept into tiny steps. One step per response. "
-            "4. Respond ONLY after the student types something. 5. Use English only."
-        )
-        model = get_gemini_model(sys_prompt)
-        st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
+        for message in st.session_state.chat_sessions[p_id].history:
+            with st.chat_message("assistant" if message.role == "model" else "user"):
+                st.markdown(message.parts[0].text)
 
-    for message in st.session_state.chat_sessions[p_id].history:
-        with st.chat_message("assistant" if message.role == "model" else "user"):
-            st.markdown(message.parts[0].text)
-
-    if not st.session_state.chat_sessions[p_id].history:
-        st.write("👋 **Tutor Ready.** Please describe the first step of your analysis to begin.")
+        if not st.session_state.chat_sessions[p_id].history:
+            st.write("👋 **Tutor Ready.** Please describe the first step of your analysis to begin.")
 
     if user_input := st.chat_input("Your analysis..."):
         for target, val in prob['targets'].items():
@@ -207,8 +199,8 @@ elif st.session_state.page == "lecture":
         
         st.image(render_lecture_visual(topic, params))
         st.markdown("---")
-        lecture_feedback = st.text_area("Final Summary:", placeholder="Summarize the governing equations.")
-        if st.button("🚀 Submit Lecture Report (Score 0-10)", use_container_width=True):
+        lecture_feedback = st.text_area("Final Summary:", placeholder="Provide feedback to your professor.")
+        if st.button("🚀 Submit Lecture Report", use_container_width=True):
             history_text = ""
             if st.session_state.lecture_session:
                 for msg in st.session_state.lecture_session.history:
@@ -224,21 +216,24 @@ elif st.session_state.page == "lecture":
 
     with col_chat:
         st.subheader("💬 Socratic Discussion")
-        if st.session_state.lecture_session is None:
-            sys_msg = (
-                f"You are a Professor teaching {topic}. Respond only in English and use LaTeX. "
-                "SOCRATIC PEDAGOGY: Do not explain theories directly. "
-                "Guide them step-by-step toward the governing equations."
-            )
-            model = get_gemini_model(sys_msg)
-            st.session_state.lecture_session = model.start_chat(history=[])
-            try:
-                st.session_state.lecture_session.send_message(f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?")
-            except Exception: pass
         
-        for msg in st.session_state.lecture_session.history:
-            with st.chat_message("assistant" if msg.role == "model" else "user"):
-                st.markdown(msg.parts[0].text)
+        # REVISION: LECTURE CHAT CONTAINER (Scrollable window for chat only)
+        lecture_chat_container = st.container(height=500)
+        with lecture_chat_container:
+            if st.session_state.lecture_session is None:
+                sys_msg = (
+                    f"You are a Professor teaching {topic}. Respond only in English and use LaTeX. "
+                    "SOCRATIC PEDAGOGY: Do not explain theories directly. Guide them step-by-step."
+                )
+                model = get_gemini_model(sys_msg)
+                st.session_state.lecture_session = model.start_chat(history=[])
+                try:
+                    st.session_state.lecture_session.send_message(f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?")
+                except Exception: pass
+            
+            for msg in st.session_state.lecture_session.history:
+                with st.chat_message("assistant" if msg.role == "model" else "user"):
+                    st.markdown(msg.parts[0].text)
         
         if lecture_input := st.chat_input("Discuss the physics..."):
             try:
