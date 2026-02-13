@@ -71,7 +71,8 @@ if st.session_state.page == "landing":
             if st.button(f"🎓 Lecture: {name}", key=f"lec_{pref}", use_container_width=True):
                 st.session_state.lecture_topic = name
                 st.session_state.page = "lecture"
-                st.session_state.lecture_session = None
+                # REVISION: Explicitly clear the previous session to ensure a fresh start
+                st.session_state.lecture_session = None 
                 st.rerun()
 
     # Section B: Practice Problems
@@ -110,6 +111,9 @@ if st.session_state.page == "landing":
                         if st.button(f"**{sub_label}**\n({prob['id']})", key=f"btn_{prob['id']}", use_container_width=True):
                             st.session_state.current_prob = prob
                             st.session_state.page = "chat"
+                            # REVISION: Clear the problem chat session for a fresh start
+                            if prob['id'] in st.session_state.chat_sessions:
+                                del st.session_state.chat_sessions[prob['id']]
                             st.rerun()
     st.markdown("---")
 
@@ -152,16 +156,14 @@ elif st.session_state.page == "chat":
     else:
         st.markdown(f"**{prob.get('category', 'Engineering Review')}**")
 
-    # Chat Logic with Enhanced Socratic Constraints
     if p_id not in st.session_state.chat_sessions:
         sys_prompt = (
             f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
             f"Context: {prob['statement']}. Use LaTeX for all math. "
             "STRICT SOCRATIC RULES: 1. NEVER give a full explanation or dump text. "
-            "2. If a student asks for a principle, ask a leading question that guides them to define it (e.g., 'What happens to velocity in the x-direction if there is no acceleration?'). "
+            "2. If a student asks for a principle, ask a leading question that guides them to define it. "
             "3. Break every concept into tiny steps. One step per response. "
-            "4. Do NOT answer your own questions. 5. Respond ONLY after the student types something. "
-            "6. Use English only."
+            "4. Respond ONLY after the student types something. 5. Use English only."
         )
         model = get_gemini_model(sys_prompt)
         st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
@@ -177,12 +179,11 @@ elif st.session_state.page == "chat":
         for target, val in prob['targets'].items():
             if target not in solved and check_numeric_match(user_input, val):
                 st.session_state.grading_data[p_id]['solved'].add(target)
-        
         try:
            st.session_state.chat_sessions[p_id].send_message(user_input)
            st.rerun()
         except Exception:
-           st.warning("⚠️ The professor is a little busy right now. Please try again in a minute.")
+           st.warning("⚠️ The professor is a little busy right now.")
 
 # --- Page 3: Interactive Lecture ---
 elif st.session_state.page == "lecture":
@@ -205,7 +206,6 @@ elif st.session_state.page == "lecture":
             st.latex(r"\vec{v}_A = \vec{v}_B + \vec{v}_{A/B}")
         
         st.image(render_lecture_visual(topic, params))
-        
         st.markdown("---")
         lecture_feedback = st.text_area("Final Summary:", placeholder="Summarize the governing equations.")
         if st.button("🚀 Submit Lecture Report (Score 0-10)", use_container_width=True):
@@ -214,7 +214,6 @@ elif st.session_state.page == "lecture":
                 for msg in st.session_state.lecture_session.history:
                     role = "Professor" if msg.role == "model" else "Student"
                     history_text += f"{role}: {msg.parts[0].text}\n"
-            
             with st.spinner("Analyzing mastery..."):
                 report = analyze_and_send_report(st.session_state.user_name, f"LECTURE: {topic}", history_text + lecture_feedback)
                 st.session_state.last_report = report
@@ -226,12 +225,9 @@ elif st.session_state.page == "lecture":
     with col_chat:
         st.subheader("💬 Socratic Discussion")
         if st.session_state.lecture_session is None:
-            # Enhanced Socratic sys_msg for lectures
             sys_msg = (
                 f"You are a Professor teaching {topic}. Respond only in English and use LaTeX. "
                 "SOCRATIC PEDAGOGY: Do not explain theories directly. "
-                "If asked for an 'important principle', ask the student to observe the simulation and describe "
-                "what happens to specific variables (like acceleration or velocity components). "
                 "Guide them step-by-step toward the governing equations."
             )
             model = get_gemini_model(sys_msg)
@@ -249,7 +245,7 @@ elif st.session_state.page == "lecture":
                 st.session_state.lecture_session.send_message(lecture_input)
                 st.rerun()
             except Exception:
-                st.warning("⚠️ The professor is a little busy right now. Please try again in a minute.")
+                st.warning("⚠️ The professor is a little busy right now.")
 
 # --- Page 4: Report View ---
 elif st.session_state.page == "report_view":
