@@ -229,32 +229,31 @@ elif st.session_state.page == "lecture":
         
         lecture_chat_container = st.container(height=500)
         with lecture_chat_container:
-            if st.session_state.lecture_session is None:
-                sys_msg = (
-                    f"You are a Professor teaching {topic}. Respond only in English and use LaTeX. "
-                    "SOCRATIC PEDAGOGY: Do not explain theories directly. Guide them step-by-step. "
-                    "IMPORTANT: Wait for the student to respond to your initial greeting before analyzing."
-                )
-                model = get_gemini_model(sys_msg)
-                st.session_state.lecture_session = model.start_chat(history=[])
-                
-            # Display existing history
-            for msg in st.session_state.lecture_session.history:
-                with st.chat_message("assistant" if msg.role == "model" else "user"):
-                    st.markdown(msg.parts[0].text)
-
-            # Display initial prompt if history is empty, without triggering model response
-            if not st.session_state.lecture_session.history:
+            initial_greeting = f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?"
+            
+            if st.session_state.lecture_session is not None:
+                # Display history ONLY if it's an actual chat session object
+                for msg in st.session_state.lecture_session.history:
+                    with st.chat_message("assistant" if msg.role == "model" else "user"):
+                        st.markdown(msg.parts[0].text)
+            else:
+                # If session is None, just show the greeting visually
                 with st.chat_message("assistant"):
-                    st.markdown(f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?")
+                    st.markdown(initial_greeting)
         
         if lecture_input := st.chat_input("Discuss the physics..."):
             try:
-                # If this is the first real input, we need to include the initial prompt context
-                if not st.session_state.lecture_session.history:
-                    initial_prompt = f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?"
-                    # We manually add the assistant's greeting to the history so the model knows context
-                    st.session_state.lecture_session.history.append({"role": "model", "parts": [{"text": initial_prompt}]})
+                if st.session_state.lecture_session is None:
+                    sys_msg = (
+                        f"You are a Professor teaching {topic}. Respond only in English and use LaTeX. "
+                        "SOCRATIC PEDAGOGY: Do not explain theories directly. Guide them step-by-step."
+                    )
+                    model = get_gemini_model(sys_msg)
+                    # Start chat with the initial greeting already in history to maintain context
+                    st.session_state.lecture_session = model.start_chat(history=[
+                        {"role": "user", "parts": ["Hi Professor."]},
+                        {"role": "model", "parts": [initial_greeting]}
+                    ])
                 
                 st.session_state.lecture_session.send_message(lecture_input)
                 st.rerun()
