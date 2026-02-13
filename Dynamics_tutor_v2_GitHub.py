@@ -201,7 +201,8 @@ elif st.session_state.page == "lecture":
         
         lecture_img = render_lecture_visual(topic, params)
         if lecture_img:
-            st.image(lecture_img, use_container_width=True)
+            # Displaying the image which is now 50% smaller from the backend
+            st.image(lecture_img, use_container_width=False)
         else:
             st.error("Failed to render simulation diagram.")
 
@@ -232,12 +233,10 @@ elif st.session_state.page == "lecture":
             initial_greeting = f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?"
             
             if st.session_state.lecture_session is not None:
-                # Display history ONLY if it's an actual chat session object
                 for msg in st.session_state.lecture_session.history:
                     with st.chat_message("assistant" if msg.role == "model" else "user"):
                         st.markdown(msg.parts[0].text)
             else:
-                # If session is None, just show the greeting visually
                 with st.chat_message("assistant"):
                     st.markdown(initial_greeting)
         
@@ -249,7 +248,6 @@ elif st.session_state.page == "lecture":
                         "SOCRATIC PEDAGOGY: Do not explain theories directly. Guide them step-by-step."
                     )
                     model = get_gemini_model(sys_msg)
-                    # Start chat with the initial greeting already in history to maintain context
                     st.session_state.lecture_session = model.start_chat(history=[
                         {"role": "user", "parts": ["Hi Professor."]},
                         {"role": "model", "parts": [initial_greeting]}
