@@ -164,7 +164,7 @@ elif st.session_state.page == "chat":
                 st.markdown(message.parts[0].text)
 
         if not st.session_state.chat_sessions[p_id].history:
-            st.write("👋 **Tutor Ready.** Please describe the first step of your analysis to begin.")
+            st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe the first step of your analysis to begin.")
 
     if user_input := st.chat_input("Your analysis..."):
         for target, val in prob['targets'].items():
@@ -199,7 +199,6 @@ elif st.session_state.page == "lecture":
             params['vB'] = [st.slider("vB_x", -20, 20, 10), st.slider("vB_y", -20, 20, -5)]
             st.latex(r"\vec{v}_A = \vec{v}_B + \vec{v}_{A/B}")
         
-        # Ensure render_lecture_visual handles the Normal & Tangent topic correctly with latest params
         lecture_img = render_lecture_visual(topic, params)
         if lecture_img:
             st.image(lecture_img, use_container_width=True)
@@ -233,20 +232,30 @@ elif st.session_state.page == "lecture":
             if st.session_state.lecture_session is None:
                 sys_msg = (
                     f"You are a Professor teaching {topic}. Respond only in English and use LaTeX. "
-                    "SOCRATIC PEDAGOGY: Do not explain theories directly. Guide them step-by-step."
+                    "SOCRATIC PEDAGOGY: Do not explain theories directly. Guide them step-by-step. "
+                    "IMPORTANT: Wait for the student to respond to your initial greeting before analyzing."
                 )
                 model = get_gemini_model(sys_msg)
                 st.session_state.lecture_session = model.start_chat(history=[])
-                try:
-                    st.session_state.lecture_session.send_message(f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?")
-                except Exception: pass
-            
+                
+            # Display existing history
             for msg in st.session_state.lecture_session.history:
                 with st.chat_message("assistant" if msg.role == "model" else "user"):
                     st.markdown(msg.parts[0].text)
+
+            # Display initial prompt if history is empty, without triggering model response
+            if not st.session_state.lecture_session.history:
+                with st.chat_message("assistant"):
+                    st.markdown(f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?")
         
         if lecture_input := st.chat_input("Discuss the physics..."):
             try:
+                # If this is the first real input, we need to include the initial prompt context
+                if not st.session_state.lecture_session.history:
+                    initial_prompt = f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?"
+                    # We manually add the assistant's greeting to the history so the model knows context
+                    st.session_state.lecture_session.history.append({"role": "model", "parts": [{"text": initial_prompt}]})
+                
                 st.session_state.lecture_session.send_message(lecture_input)
                 st.rerun()
             except Exception:
