@@ -79,11 +79,9 @@ if st.session_state.page == "landing":
     st.subheader("📝 Engineering Review Problems")
     categories = {}
     for p in PROBLEMS:
-        # Extract category and strip "HW X" prefixes
         raw_cat = p.get('category', 'General').split(":")[0].strip()
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").strip()
         
-        # Standardize naming for display headers
         if "kinematics" in clean_cat.lower() and "particle" not in clean_cat.lower():
             cat_main = "Particle Kinematics"
         elif "curvilinear" in clean_cat.lower():
@@ -129,7 +127,6 @@ elif st.session_state.page == "chat":
         st.image(render_problem_diagram(prob), width=400)
     
     with cols[1]:
-        # --- Variables Found & Progress Bar Removed ---
         st.markdown("### 📝 Session Analysis")
         st.write("Work through the derivation with the tutor below. Focus on using correct LaTeX notation and physical principles.")
         
@@ -155,13 +152,16 @@ elif st.session_state.page == "chat":
     else:
         st.markdown(f"**{prob.get('category', 'Engineering Review')}**")
 
-    # Chat Logic with Error Handling
+    # Chat Logic with Enhanced Socratic Constraints
     if p_id not in st.session_state.chat_sessions:
         sys_prompt = (
             f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
             f"Context: {prob['statement']}. Use LaTeX for all math. "
-            "STRICT RULES: 1. Do NOT answer your own questions. 2. NEVER ask 'what diagram' questions. "
-            "3. Respond ONLY after the student types something. 4. Use English only."
+            "STRICT SOCRATIC RULES: 1. NEVER give a full explanation or dump text. "
+            "2. If a student asks for a principle, ask a leading question that guides them to define it (e.g., 'What happens to velocity in the x-direction if there is no acceleration?'). "
+            "3. Break every concept into tiny steps. One step per response. "
+            "4. Do NOT answer your own questions. 5. Respond ONLY after the student types something. "
+            "6. Use English only."
         )
         model = get_gemini_model(sys_prompt)
         st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
@@ -174,12 +174,10 @@ elif st.session_state.page == "chat":
         st.write("👋 **Tutor Ready.** Please describe the first step of your analysis to begin.")
 
     if user_input := st.chat_input("Your analysis..."):
-        # Backend solving logic remains for reporting purposes, though visual is gone
         for target, val in prob['targets'].items():
             if target not in solved and check_numeric_match(user_input, val):
                 st.session_state.grading_data[p_id]['solved'].add(target)
         
-        # Error handling
         try:
            st.session_state.chat_sessions[p_id].send_message(user_input)
            st.rerun()
@@ -228,11 +226,18 @@ elif st.session_state.page == "lecture":
     with col_chat:
         st.subheader("💬 Socratic Discussion")
         if st.session_state.lecture_session is None:
-            sys_msg = f"You are a Professor teaching {topic}. Respond only in English and use LaTeX."
+            # Enhanced Socratic sys_msg for lectures
+            sys_msg = (
+                f"You are a Professor teaching {topic}. Respond only in English and use LaTeX. "
+                "SOCRATIC PEDAGOGY: Do not explain theories directly. "
+                "If asked for an 'important principle', ask the student to observe the simulation and describe "
+                "what happens to specific variables (like acceleration or velocity components). "
+                "Guide them step-by-step toward the governing equations."
+            )
             model = get_gemini_model(sys_msg)
             st.session_state.lecture_session = model.start_chat(history=[])
             try:
-                st.session_state.lecture_session.send_message(f"Hello {st.session_state.user_name}. How do the vectors in this {topic} simulation relate?")
+                st.session_state.lecture_session.send_message(f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?")
             except Exception: pass
         
         for msg in st.session_state.lecture_session.history:
@@ -252,6 +257,3 @@ elif st.session_state.page == "report_view":
     st.markdown(st.session_state.get("last_report", "No report available."))
     if st.button("Return to Main Menu"):
         st.session_state.page = "landing"; st.rerun()
-
-
-
