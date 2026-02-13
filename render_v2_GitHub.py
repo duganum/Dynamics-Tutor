@@ -109,7 +109,6 @@ def render_problem_diagram(prob):
     try:
         plt.tight_layout()
     except Exception:
-        # Fallback if tight_layout fails
         plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
 
     buf = io.BytesIO()
@@ -152,6 +151,32 @@ def render_lecture_visual(topic, params=None):
         ax.plot(x, y, 'g-', lw=2)
         ax.set_xlim(-5, max(x)+5); ax.set_ylim(-5, max(y)+5)
         ax.set_title(r"Projectile Trajectory Analysis")
+
+    elif topic == "Normal & Tangent":
+        v, rho = params.get('v', 20), params.get('rho', 50)
+        # Draw path (arc)
+        theta_arc = np.linspace(np.pi/4, 3*np.pi/4, 100)
+        ax.plot(rho * np.cos(theta_arc), rho * np.sin(theta_arc) - rho, 'k--', alpha=0.5)
+        # Position at center of arc (top)
+        ax.plot(0, 0, 'ko', markersize=8)
+        # Acceleration Vectors
+        ax.quiver(0, 0, v, 0, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$v$ (Tangent)')
+        ax.quiver(0, 0, 0, -(v**2/rho), color='red', angles='xy', scale_units='xy', scale=1, label=r'$a_n = v^2/\rho$')
+        ax.set_xlim(-rho, rho); ax.set_ylim(-rho, rho/2)
+        ax.set_title(r"Normal and Tangential Acceleration")
+        ax.legend()
+
+    elif topic == "Polar Coordinates":
+        r, theta_deg = params.get('r', 20), params.get('theta', 45)
+        theta = np.radians(theta_deg)
+        x, y = r * np.cos(theta), r * np.sin(theta)
+        ax.plot([0, x], [0, y], 'k-o', lw=2)
+        # Unit vectors
+        ax.quiver(x, y, np.cos(theta)*5, np.sin(theta)*5, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$e_r$')
+        ax.quiver(x, y, -np.sin(theta)*5, np.cos(theta)*5, color='red', angles='xy', scale_units='xy', scale=1, label=r'$e_\theta$')
+        ax.set_xlim(-r-10, r+10); ax.set_ylim(-r-10, r+10)
+        ax.set_title(r"Polar Coordinates: Radial & Transverse")
+        ax.legend()
 
     # FIX: Wrap tight_layout in a try-except block
     try:
