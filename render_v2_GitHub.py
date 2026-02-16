@@ -7,9 +7,9 @@ def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
     Supports nested paths: images/[HW Folder]/images/[ID].png
-    Handles specific spacing and naming in HW 7 and HW 8 directory naming.
+    Handles specific spacing in HW 7 and HW 8 directory naming.
     """
-    # Ensure we handle both the full object and just the ID for backward compatibility
+    # Ensure we handle both the full object and just the ID
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
     else:
@@ -69,19 +69,20 @@ def render_problem_diagram(prob):
         
         folder_name = None
         
-        # Specific logic for HW 8 (Work and Energy) folder structure
+        # Explicit target for the HW 8 (Work and Energy) folder structure
         if "work" in category or "energy" in category or pid in ["141", "158", "161", "162"]:
             folder_name = "HW 8 (work and energy)"
             image_filename = f"{pid}.png"
         elif hw_title and hw_subtitle:
-            # Handling the specific extra space in the "HW 7  (" directory naming convention
             if hw_title == "HW 7":
+                # Matches the specific naming "HW 7  (subtitle)" with double space
                 folder_name = f"HW 7  ({hw_subtitle})" 
             else:
                 folder_name = f"{hw_title} ({hw_subtitle})"
             image_filename = f"{pid.split('_')[-1]}.png"
 
         if folder_name:
+            # Builds path: images/HW 8 (work and energy)/images/158.png
             img_path = os.path.join('images', folder_name, 'images', image_filename)
             
             try:
@@ -94,7 +95,7 @@ def render_problem_diagram(prob):
             except Exception:
                 pass
         
-        # Fallback 1: Root images folder with cleaned name
+        # Fallback 1: Root images folder
         if not found:
             clean_name = pid.replace("_", "").replace(".", "").lower()
             img_path_alt = os.path.join('images', f'{clean_name}.png')
