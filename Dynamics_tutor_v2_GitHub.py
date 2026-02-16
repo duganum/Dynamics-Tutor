@@ -9,9 +9,15 @@ from render_v2_GitHub import render_problem_diagram, render_lecture_visual
 # 1. Page Configuration
 st.set_page_config(page_title="Socratic Engineering Tutor", layout="wide")
 
-# 2. CSS: Minimal Button Height (60px) and UI consistency
+# 2. CSS: Reduce Top Space and UI consistency
 st.markdown("""
     <style>
+    /* Reduce empty space at the top */
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 0rem;
+        margin-top: -3rem;
+    }
     div.stButton > button {
         height: 60px;
         padding: 5px 10px;
@@ -130,12 +136,13 @@ elif st.session_state.page == "chat":
     with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        # Render image at ~50% width of the column for high quality and reduced size
+        # Render image at high quality and reduced size
         st.image(render_problem_diagram(prob), width=350)
     
     with top_cols[1]:
         st.subheader("💬 Socratic Tutor")
-        chat_container = st.container(height=500)
+        # Height reduced by 20% (from 500 to 400)
+        chat_container = st.container(height=400)
         with chat_container:
             if p_id not in st.session_state.chat_sessions:
                 sys_prompt = (
