@@ -61,15 +61,15 @@ def render_problem_diagram(prob):
             ax.set_xlim(-0.5, 3.5); ax.set_ylim(-0.5, 2)
             found = True
 
-    # --- RESTORED: Geometric Properties (S_1.3) ---
+    # --- Geometric Properties (S_1.3) ---
     elif pid.startswith("S_1.3"):
-        if pid == "S_1.3_1": # FIXED: Now renders a RECTANGLE
+        if pid == "S_1.3_1": # Renders a RECTANGLE
             pts = np.array([[0,0], [4,0], [4,2], [0,2], [0,0]])
             ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
             ax.plot(2, 1, 'rx', markersize=10) # Centroid marker
             ax.set_xlim(-0.5, 4.5); ax.set_ylim(-0.5, 2.5)
             found = True
-        elif pid == "S_1.3_2": # FIXED: Now renders a SQUARE
+        elif pid == "S_1.3_2": # Renders a SQUARE
             pts = np.array([[0,0], [2,0], [2,2], [0,2], [0,0]])
             ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
             ax.plot(1, 1, 'rx', markersize=10) # Centroid marker
@@ -81,7 +81,7 @@ def render_problem_diagram(prob):
             ax.set_xlim(-1, 5); ax.set_ylim(-1, 5)
             found = True
 
-    # --- RESTORED: Equilibrium (S_1.4) ---
+    # --- Equilibrium (S_1.4) ---
     elif pid.startswith("S_1.4"):
         if pid == "S_1.4_1": # Lever Equilibrium
             ax.plot([-3, 3], [0, 0], 'k-', lw=4)
@@ -90,12 +90,16 @@ def render_problem_diagram(prob):
             ax.annotate('F', xy=(2.5, 0), xytext=(2.5, 1), arrowprops=dict(arrowstyle='->', color='blue'))
             ax.set_xlim(-4, 4); ax.set_ylim(-2, 2)
             found = True
-        elif pid == "S_1.4_2": # Wrench/Moment
-            ax.plot([0, 2], [0, 0], 'gray', lw=8)
+        elif pid == "S_1.4_2": # FIXED: Cantilever with 100N DOWNWARD force at tip
+            # Beam
+            ax.plot([0, 3], [0, 0], color='gray', lw=8, solid_capstyle='butt')
+            # Fixed support
             ax.plot(0, 0, 'ko', markersize=12)
-            ax.annotate('', xy=(2, 1), xytext=(2, 0), arrowprops=dict(arrowstyle='->', color='red'))
-            ax.text(2.1, 0.5, 'Force F')
-            ax.set_xlim(-0.5, 3); ax.set_ylim(-1, 2)
+            # 100N Downward Force at the tip (x=3)
+            ax.annotate('', xy=(3, -1), xytext=(3, 0), 
+                        arrowprops=dict(arrowstyle='->', color='red', lw=2))
+            ax.text(3.1, -0.5, '100 N', color='red', fontweight='bold')
+            ax.set_xlim(-0.5, 4); ax.set_ylim(-1.5, 1.5)
             found = True
 
     # --- 2. HW Directory Image Loader (Nested Path Logic) ---
