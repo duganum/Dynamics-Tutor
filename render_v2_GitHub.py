@@ -63,17 +63,17 @@ def render_problem_diagram(prob):
 
     # --- RESTORED: Geometric Properties (S_1.3) ---
     elif pid.startswith("S_1.3"):
-        if pid == "S_1.3_1": # Square Section (Fixed rendering)
-            rect = plt.Rectangle((0, 0), 2, 2, color='green', alpha=0.3)
-            ax.add_patch(rect)
+        if pid == "S_1.3_1": # FIXED: Now renders a RECTANGLE
+            pts = np.array([[0,0], [4,0], [4,2], [0,2], [0,0]])
+            ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
+            ax.plot(2, 1, 'rx', markersize=10) # Centroid marker
+            ax.set_xlim(-0.5, 4.5); ax.set_ylim(-0.5, 2.5)
+            found = True
+        elif pid == "S_1.3_2": # FIXED: Now renders a SQUARE
+            pts = np.array([[0,0], [2,0], [2,2], [0,2], [0,0]])
+            ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
             ax.plot(1, 1, 'rx', markersize=10) # Centroid marker
             ax.set_xlim(-0.5, 2.5); ax.set_ylim(-0.5, 2.5)
-            found = True
-        elif pid == "S_1.3_2": # Triangle
-            pts = np.array([[0,0], [3,0], [0,3], [0,0]])
-            ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
-            ax.plot(1, 1, 'rx', markersize=10)
-            ax.set_xlim(-0.5, 3.5); ax.set_ylim(-0.5, 3.5)
             found = True
         elif pid == "S_1.3_3": # Composite L-shape
             pts = np.array([[0,0], [4,0], [4,1], [1,1], [1,4], [0,4], [0,0]])
