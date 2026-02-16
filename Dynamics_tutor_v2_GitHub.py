@@ -3,6 +3,7 @@ import json
 import re
 import numpy as np
 import matplotlib.pyplot as plt
+from google.api_core import exceptions  # Added for rate limit handling
 from logic_v2_GitHub import get_gemini_model, load_problems, check_numeric_match, analyze_and_send_report
 from render_v2_GitHub import render_problem_diagram, render_lecture_visual
 
@@ -12,7 +13,6 @@ st.set_page_config(page_title="Socratic Engineering Tutor", layout="wide")
 # 2. CSS: Refined Spacing and UI consistency
 st.markdown("""
     <style>
-    /* Add specific padding to the top so the window header shows up clearly */
     .block-container {
         padding-top: 2rem;
         padding-bottom: 0rem;
@@ -29,7 +29,6 @@ st.markdown("""
         justify-content: center;
         text-align: center;
     }
-    /* Improve image rendering quality for readability */
     img {
         image-rendering: -webkit-optimize-contrast;
         image-rendering: crisp-edges;
@@ -95,9 +94,8 @@ if st.session_state.page == "landing":
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         low_cat = clean_cat.lower()
         
-        # Priority Sorting Logic
         if "statics" in low_cat:
-            cat_main = "00_Statics" # Force to top
+            cat_main = "00_Statics"
         elif "kinematics" in low_cat and "particle" not in low_cat:
             cat_main = "01_Particle Kinematics"
         elif "curvilinear" in low_cat:
@@ -112,11 +110,9 @@ if st.session_state.page == "landing":
         if cat_main not in categories: categories[cat_main] = []
         categories[cat_main].append(p)
 
-    # Sort keys to ensure priority labels determine order
     sorted_cat_keys = sorted(categories.keys())
     for cat_key in sorted_cat_keys:
         probs = categories[cat_key]
-        # Clean display name for the user
         display_name = re.sub(r'^[0-9a-z_]+_', '', cat_key) 
         
         st.markdown(f"#### {display_name}")
@@ -159,25 +155,35 @@ elif st.session_state.page == "chat":
                     f"Context: {prob['statement']}. Use LaTeX for all math. "
                     "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Guide them step-by-step."
                 )
-                model = get_gemini_model(sys_prompt)
-                st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
+                # Defensive call to model initialization
+                try:
+                    model = get_gemini_model(sys_prompt)
+                    st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
+                except Exception:
+                    st.error("Could not reach the AI service. Please refresh.")
 
-            for message in st.session_state.chat_sessions[p_id].history:
-                with st.chat_message("assistant" if message.role == "model" else "user"):
-                    st.markdown(message.parts[0].text)
+            if p_id in st.session_state.chat_sessions:
+                for message in st.session_state.chat_sessions[p_id].history:
+                    with st.chat_message("assistant" if message.role == "model" else "user"):
+                        st.markdown(message.parts[0].text)
 
-            if not st.session_state.chat_sessions[p_id].history:
-                st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe your first step.")
+                if not st.session_state.chat_sessions[p_id].history:
+                    st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe your first step.")
 
         if user_input := st.chat_input("Your analysis..."):
             for target, val in prob['targets'].items():
                 if target not in solved and check_numeric_match(user_input, val):
                     st.session_state.grading_data[p_id]['solved'].add(target)
+            
+            # Rate Limit Protection Wrapper
             try:
-                st.session_state.chat_sessions[p_id].send_message(user_input)
+                with st.spinner("Tutor is thinking..."):
+                    st.session_state.chat_sessions[p_id].send_message(user_input)
                 st.rerun()
-            except Exception:
-                st.warning("⚠️ The professor is busy right now.")
+            except exceptions.ResourceExhausted:
+                st.error("⚠️ System limit reached. Please wait 60 seconds before sending another message.")
+            except Exception as e:
+                st.warning("⚠️ The professor is busy right now. Please try again in a moment.")
 
     st.markdown("---")
     bot_col1, bot_col2 = st.columns([2, 1])
@@ -195,11 +201,16 @@ elif st.session_state.page == "chat":
                     role = "Tutor" if msg.role == "model" else "Student"
                     history_text += f"{role}: {msg.parts[0].text}\n"
             
-            with st.spinner("Analyzing mastery..."):
-                report = analyze_and_send_report(st.session_state.user_name, prob['category'], history_text + feedback)
-                st.session_state.last_report = report
-                st.session_state.page = "report_view"
-                st.rerun()
+            try:
+                with st.spinner("Analyzing mastery..."):
+                    report = analyze_and_send_report(st.session_state.user_name, prob['category'], history_text + feedback)
+                    st.session_state.last_report = report
+                    st.session_state.page = "report_view"
+                    st.rerun()
+            except exceptions.ResourceExhausted:
+                st.error("Rate limit hit during reporting. Please wait a minute and try again.")
+            except Exception:
+                st.error("An error occurred while generating the report.")
         
         if st.button("🏠 Exit to Home", use_container_width=True):
             st.session_state.page = "landing"
