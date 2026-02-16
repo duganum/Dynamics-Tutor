@@ -20,7 +20,9 @@ def render_problem_diagram(prob):
     ax.set_aspect('equal')
     found = False
 
-    # --- 1. Procedural Statics Diagrams (S_1.1 to S_1.4) ---
+    # --- 1. Procedural Statics Diagrams (FBD, Trusses, Geometric Props, Equilibrium) ---
+    
+    # 1.1: Free Body Diagrams
     if pid.startswith("S_1.1"):
         if pid == "S_1.1_1": # 50kg mass cables
             ax.plot(0, 0, 'ko', markersize=8)
@@ -45,6 +47,7 @@ def render_problem_diagram(prob):
             ax.set_xlim(-0.5, 4); ax.set_ylim(-1, 3)
             found = True
 
+    # 1.2: Trusses
     elif pid.startswith("S_1.2"):
         if pid == "S_1.2_1":
             pts = np.array([[0,0], [2,2], [4,0], [0,0]])
@@ -61,6 +64,43 @@ def render_problem_diagram(prob):
             ax.set_xlim(-0.5, 3.5); ax.set_ylim(-0.5, 2)
             found = True
 
+    # 1.3: Geometric Properties (Centroids/Area)
+    elif pid.startswith("S_1.3"):
+        if pid == "S_1.3_1": # Rectangular Area
+            rect = plt.Rectangle((0, 0), 4, 2, color='blue', alpha=0.3)
+            ax.add_patch(rect)
+            ax.plot(2, 1, 'rx', markersize=10, label='Centroid')
+            ax.set_xlim(-1, 5); ax.set_ylim(-1, 3)
+            found = True
+        elif pid == "S_1.3_2": # Triangular Area
+            tri = plt.Polygon([[0,0], [3,0], [0,3]], color='green', alpha=0.3)
+            ax.add_patch(tri)
+            ax.plot(1, 1, 'rx', markersize=10)
+            ax.set_xlim(-1, 4); ax.set_ylim(-1, 4)
+            found = True
+        elif pid == "S_1.3_3": # Composite Shape (L-shape)
+            pts = np.array([[0,0], [4,0], [4,1], [1,1], [1,4], [0,4], [0,0]])
+            ax.fill(pts[:,0], pts[:,1], color='orange', alpha=0.3)
+            ax.set_xlim(-1, 5); ax.set_ylim(-1, 5)
+            found = True
+
+    # 1.4: Equilibrium (Forces and Moments)
+    elif pid.startswith("S_1.4"):
+        if pid == "S_1.4_1": # Seesaw/Lever
+            ax.plot([-3, 3], [0, 0], 'k-', lw=4)
+            ax.plot(0, -0.5, 'k^', markersize=15) # Fulcrum
+            ax.annotate('100 N', xy=(-2.5, -1), xytext=(-2.5, 0), arrowprops=dict(arrowstyle='->', color='red'))
+            ax.annotate('F', xy=(2.5, 0), xytext=(2.5, 1), arrowprops=dict(arrowstyle='->', color='blue'))
+            ax.set_xlim(-4, 4); ax.set_ylim(-2, 2)
+            found = True
+        elif pid == "S_1.4_2": # Moment on a bolt/wrench
+            ax.plot([0, 2], [0, 0], 'gray', lw=8)
+            ax.plot(0, 0, 'ko', markersize=12)
+            ax.annotate('', xy=(2, 1), xytext=(2, 0), arrowprops=dict(arrowstyle='->', color='red'))
+            ax.text(2.1, 0.5, 'Force F')
+            ax.set_xlim(-0.5, 3); ax.set_ylim(-1, 2)
+            found = True
+
     # --- 2. HW Directory Image Loader (Nested Path Logic) ---
     if not found:
         hw_title = prob.get("hw_title")
@@ -69,13 +109,10 @@ def render_problem_diagram(prob):
         
         folder_name = None
         
-        # FIX: Specific logic for HW 8 (Work and Energy) folder structure
-        # Checks category name or specific numeric IDs identified in repository
         if "work" in category or "energy" in category or pid in ["141", "158", "161", "162"]:
             folder_name = "HW 8 (work and energy)"
             image_filename = f"{pid}.png"
         elif hw_title and hw_subtitle:
-            # Handling the specific extra space for HW 7 convention
             if hw_title == "HW 7":
                 folder_name = f"HW 7  ({hw_subtitle})" 
             else:
@@ -84,7 +121,6 @@ def render_problem_diagram(prob):
 
         if folder_name:
             img_path = os.path.join('images', folder_name, 'images', image_filename)
-            
             try:
                 if os.path.exists(img_path):
                     img = plt.imread(img_path)
@@ -95,7 +131,6 @@ def render_problem_diagram(prob):
             except Exception:
                 pass
         
-        # Fallback for root images folder
         if not found:
             clean_name = pid.replace("_", "").replace(".", "").lower()
             img_path_alt = os.path.join('images', f'{clean_name}.png')
