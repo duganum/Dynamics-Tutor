@@ -93,7 +93,6 @@ if st.session_state.page == "landing":
         elif "rectilinear" in low_cat:
             cat_main = "Kinetics of Particles (Rectilinear)"
         elif "work" in low_cat or "energy" in low_cat:
-            # Force Work and Energy to the end using a sortable prefix
             cat_main = "zzz_Work and Energy"  
         else:
             cat_main = clean_cat
@@ -113,7 +112,6 @@ if st.session_state.page == "landing":
             for j in range(3):
                 if i + j < len(probs):
                     prob = probs[i + j]
-                    # Format sub_label using dynamic logic
                     if "hw_subtitle" in prob:
                         sub_label = prob["hw_subtitle"].capitalize()
                     else:
@@ -135,18 +133,49 @@ elif st.session_state.page == "chat":
     if p_id not in st.session_state.grading_data: st.session_state.grading_data[p_id] = {'solved': set()}
     solved = st.session_state.grading_data[p_id]['solved']
     
+    # UI Layout: Reordered per request
     cols = st.columns([2, 1])
-    with cols[0]:
+    
+    with cols[0]: # Problem and Chat Area
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
         st.image(render_problem_diagram(prob), width=400)
-    
-    with cols[1]:
-        st.markdown("### 📝 Session Analysis")
-        st.write("Work through the derivation with the tutor below.")
         
-        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide feedback.")
-        if st.button("⬅️ Submit Session", use_container_width=True):
+        st.markdown("---")
+        chat_container = st.container(height=450)
+        with chat_container:
+            if p_id not in st.session_state.chat_sessions:
+                sys_prompt = (
+                    f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
+                    f"Context: {prob['statement']}. Use LaTeX for all math. "
+                    "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Guide them step-by-step."
+                )
+                model = get_gemini_model(sys_prompt)
+                st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
+
+            for message in st.session_state.chat_sessions[p_id].history:
+                with st.chat_message("assistant" if message.role == "model" else "user"):
+                    st.markdown(message.parts[0].text)
+
+            if not st.session_state.chat_sessions[p_id].history:
+                st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe your first step.")
+
+        if user_input := st.chat_input("Your analysis..."):
+            for target, val in prob['targets'].items():
+                if target not in solved and check_numeric_match(user_input, val):
+                    st.session_state.grading_data[p_id]['solved'].add(target)
+            try:
+                st.session_state.chat_sessions[p_id].send_message(user_input)
+                st.rerun()
+            except Exception:
+                st.warning("⚠️ The professor is busy right now.")
+
+    with cols[1]: # Session Analysis (Now on the right)
+        st.markdown("### 📝 Session Analysis")
+        st.write("Work through the derivation with the tutor.")
+        
+        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide feedback.", height=150)
+        if st.button("💾 Submit Session", use_container_width=True):
             history_text = ""
             if p_id in st.session_state.chat_sessions:
                 for msg in st.session_state.chat_sessions[p_id].history:
@@ -159,34 +188,10 @@ elif st.session_state.page == "chat":
                 st.session_state.page = "report_view"
                 st.rerun()
 
+    # Footer Navigation
     st.markdown("---")
-    
-    chat_container = st.container(height=400)
-    with chat_container:
-        if p_id not in st.session_state.chat_sessions:
-            sys_prompt = (
-                f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
-                f"Context: {prob['statement']}. Use LaTeX for all math. "
-                "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Guide them step-by-step."
-            )
-            model = get_gemini_model(sys_prompt)
-            st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
+    if st.button("🏠 Exit to Home", use_container_width=False):
+        st.session_state.page = "landing"
+        st.rerun()
 
-        for message in st.session_state.chat_sessions[p_id].history:
-            with st.chat_message("assistant" if message.role == "model" else "user"):
-                st.markdown(message.parts[0].text)
-
-        if not st.session_state.chat_sessions[p_id].history:
-            st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe your first step.")
-
-    if user_input := st.chat_input("Your analysis..."):
-        for target, val in prob['targets'].items():
-            if target not in solved and check_numeric_match(user_input, val):
-                st.session_state.grading_data[p_id]['solved'].add(target)
-        try:
-           st.session_state.chat_sessions[p_id].send_message(user_input)
-           st.rerun()
-        except Exception:
-           st.warning("⚠️ The professor is busy right now.")
-
-# (Remaining logic for interactive lecture and report view remains unchanged)
+# --- (Other Page Logic like lecture/report_view would follow here) ---
