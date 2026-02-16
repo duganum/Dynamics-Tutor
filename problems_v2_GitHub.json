@@ -227,7 +227,29 @@
     "statement": "The hollow tube assembly rotates about a vertical axis with angular velocity $\\omega = \\dot{\\theta} = 4$ rad/s and $\\dot{\\omega} = \\ddot{\\theta} = -2$ rad/s$^2$. A small 0.2-kg slider $P$ moves inside the horizontal tube portion under the control of the string which passes out the bottom of the assembly. If $r = 0.8$ m, $\\dot{r} = -2$ m/s, and $\\ddot{r} = 4$ m/s$^2$, determine the tension $T$ in the string and the horizontal force $F_\\theta$ exerted on the slider by the tube.",
     "targets": { "T": 1.76, "F_theta": 1.28 },
     "required_units": ["n"]
+  },
+  {
+    "id": "WE_158",
+    "category": "Work and Energy",
+    "statement": "A 2-kg collar is attached to a spring ($k = 30$ N/m, unstretched length = 1.5 m) and is released from rest at A. It slides up a smooth vertical rod under a constant 50-N force acting at a 30-degree angle from the rod. Calculate the velocity $v$ of the collar as it passes position B, located 1.5 m above A. Use $g = 9.81$ m/s$^2$.",
+    "targets": { "v": 5.06 },
+    "required_units": ["m/s"]
+  },
+  {
+    "id": "WE_161",
+    "category": "Work and Energy",
+    "statement": "A 5-kg cylinder is released from rest 100 mm above a spring with stiffness $k = 1.8$ kN/m. Determine the maximum compression $x_{max}$ of the spring. Use $g = 9.81$ m/s$^2$.",
+    "targets": { "x_{max}": 0.105 },
+    "required_units": ["m", "mm"]
+  },
+  {
+    "id": "WE_162",
+    "category": "Work and Energy",
+    "statement": "A 175-lb pole vaulter carries a uniform 16-ft, 10-lb pole. The center of gravity of the vaulter and the horizontal pole are both 42 in. above the ground during the approach. If he barely clears a bar at 18 ft with zero velocity, calculate the minimum initial velocity $v$ required.",
+    "targets": { "v": 30.5 },
+    "required_units": ["ft/sec"]
   }
 ]
+
 
 
