@@ -58,9 +58,13 @@
   {
     "id": "S_1.3_3",
     "category": "Statics: Geometric Properties",
-    "statement": "Find the Area of a circle with a diameter of 0.5 m.",
-    "targets": { "Area": 0.196 },
-    "required_units": ["m^2", "m2"]
+    "statement": "For the L-shaped section shown, with a vertical height of 4 m, a horizontal base of 4 m, and a uniform thickness of 1 m for both segments, calculate the Area Moments of Inertia $I_{xx}$ and $I_{yy}$ about the base and left edge respectively.",
+    "targets": { 
+        "Ixx": 21.33, 
+        "Iyy": 21.33,
+        "Area": 7.0 
+    },
+    "required_units": ["m^4", "m^2"]
   },
   {
     "id": "S_1.4_1",
@@ -250,6 +254,7 @@
     "required_units": ["ft/sec"]
   }
 ]
+
 
 
 
