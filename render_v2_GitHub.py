@@ -90,16 +90,28 @@ def render_problem_diagram(prob):
             ax.annotate('F', xy=(2.5, 0), xytext=(2.5, 1), arrowprops=dict(arrowstyle='->', color='blue'))
             ax.set_xlim(-4, 4); ax.set_ylim(-2, 2)
             found = True
-        elif pid == "S_1.4_2": # FIXED: Cantilever with 100N DOWNWARD force at tip
-            # Beam
+        elif pid == "S_1.4_2": # Cantilever with tip force
             ax.plot([0, 3], [0, 0], color='gray', lw=8, solid_capstyle='butt')
-            # Fixed support
             ax.plot(0, 0, 'ko', markersize=12)
-            # 100N Downward Force at the tip (x=3)
-            ax.annotate('', xy=(3, -1), xytext=(3, 0), 
-                        arrowprops=dict(arrowstyle='->', color='red', lw=2))
+            ax.annotate('', xy=(3, -1), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
             ax.text(3.1, -0.5, '100 N', color='red', fontweight='bold')
             ax.set_xlim(-0.5, 4); ax.set_ylim(-1.5, 1.5)
+            found = True
+        elif pid == "S_1.4_3": # FIXED: Log carried by two people (Vector Rendering)
+            # Draw the log
+            ax.plot([0, 6], [0, 0], color='brown', lw=10, solid_capstyle='round', label='Log (60 kg)')
+            # Center of gravity (Weight force)
+            ax.annotate('', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='black', lw=2))
+            ax.text(3.1, -1.2, 'W=588N', fontsize=9)
+            # Person A at the end (x=0)
+            ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+            ax.text(-0.5, 1.6, '$F_A$', color='blue', fontweight='bold')
+            # Person B at 1/3 from the other end (x = 6 - 6/3 = 4)
+            ax.annotate('', xy=(4, 1.5), xytext=(4, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
+            ax.text(4.1, 1.6, '$F_B$', color='green', fontweight='bold')
+            # Dimensions
+            ax.text(2, 0.2, 'L=6m', fontsize=8, ha='center')
+            ax.set_xlim(-1, 7); ax.set_ylim(-2, 3)
             found = True
 
     # --- 2. HW Directory Image Loader (Nested Path Logic) ---
