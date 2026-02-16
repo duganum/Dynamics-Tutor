@@ -35,7 +35,31 @@ if "user_name" not in st.session_state: st.session_state.user_name = None
 if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
 if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-PROBLEMS = load_problems()
+# Updated PROBLEM list including the new Work and Energy problems
+# In a production environment, these would be loaded via load_problems() if updated in the source JSON
+PROBLEMS = [
+    {
+        "id": "WE_3.1_1",
+        "category": "Work and Energy",
+        "statement": "A 2-kg collar is attached to a spring ($k = 30$ N/m, unstretched length = 1.5 m) and is released from rest at A. It slides up a smooth vertical rod under a constant 50-N force acting at a 30-degree angle from the rod. Calculate the velocity $v$ of the collar as it passes position B, located 1.5 m above A. Use $g = 9.81$ m/s$^2$.",
+        "targets": { "v": 5.06 },
+        "required_units": ["m/s"]
+    },
+    {
+        "id": "WE_3.1_2",
+        "category": "Work and Energy",
+        "statement": "A 5-kg cylinder is released from rest 100 mm above a spring with stiffness $k = 1.8$ kN/m. Determine the maximum compression $x_{max}$ of the spring. Use $g = 9.81$ m/s$^2$.",
+        "targets": { "x_{max}": 0.105 },
+        "required_units": ["m", "mm"]
+    },
+    {
+        "id": "WE_3.1_3",
+        "category": "Work and Energy",
+        "statement": "A 175-lb pole vaulter carries a uniform 16-ft, 10-lb pole. The center of gravity of the vaulter and the horizontal pole are both 42 in. above the ground during the approach. If he barely clears a bar at 18 ft with zero velocity, calculate the minimum initial velocity $v$ required.",
+        "targets": { "v": 30.5 },
+        "required_units": ["ft/sec"]
+    }
+] + load_problems()
 
 # --- Page 0: Name Entry ---
 if st.session_state.user_name is None:
@@ -88,6 +112,8 @@ if st.session_state.page == "landing":
             cat_main = "Kinetics of Particles (Curvilinear)"
         elif "rectilinear" in clean_cat.lower():
             cat_main = "Kinetics of Particles (Rectilinear)"
+        elif "work" in clean_cat.lower() or "energy" in clean_cat.lower():
+            cat_main = "Work and Energy"
         else:
             cat_main = clean_cat
             
@@ -126,6 +152,7 @@ elif st.session_state.page == "chat":
     with cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
+        # Dynamic rendering of diagrams based on ID
         st.image(render_problem_diagram(prob), width=400)
     
     with cols[1]:
@@ -201,7 +228,6 @@ elif st.session_state.page == "lecture":
         
         lecture_img = render_lecture_visual(topic, params)
         if lecture_img:
-            # Displaying the image which is now 50% smaller from the backend
             st.image(lecture_img, use_container_width=False)
         else:
             st.error("Failed to render simulation diagram.")
