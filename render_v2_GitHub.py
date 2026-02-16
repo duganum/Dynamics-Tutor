@@ -20,9 +20,7 @@ def render_problem_diagram(prob):
     ax.set_aspect('equal')
     found = False
 
-    # --- 1. Procedural Statics Diagrams (FBD, Trusses, Geometric Props, Equilibrium) ---
-    
-    # 1.1: Free Body Diagrams
+    # --- 1. Procedural Statics Diagrams (S_1.1 to S_1.4) ---
     if pid.startswith("S_1.1"):
         if pid == "S_1.1_1": # 50kg mass cables
             ax.plot(0, 0, 'ko', markersize=8)
@@ -47,7 +45,6 @@ def render_problem_diagram(prob):
             ax.set_xlim(-0.5, 4); ax.set_ylim(-1, 3)
             found = True
 
-    # 1.2: Trusses
     elif pid.startswith("S_1.2"):
         if pid == "S_1.2_1":
             pts = np.array([[0,0], [2,2], [4,0], [0,0]])
@@ -64,36 +61,36 @@ def render_problem_diagram(prob):
             ax.set_xlim(-0.5, 3.5); ax.set_ylim(-0.5, 2)
             found = True
 
-    # 1.3: Geometric Properties (Centroids/Area)
+    # --- RESTORED: Geometric Properties (S_1.3) ---
     elif pid.startswith("S_1.3"):
-        if pid == "S_1.3_1": # Rectangular Area
-            rect = plt.Rectangle((0, 0), 4, 2, color='blue', alpha=0.3)
+        if pid == "S_1.3_1": # Square Section (Fixed rendering)
+            rect = plt.Rectangle((0, 0), 2, 2, color='green', alpha=0.3)
             ax.add_patch(rect)
-            ax.plot(2, 1, 'rx', markersize=10, label='Centroid')
-            ax.set_xlim(-1, 5); ax.set_ylim(-1, 3)
+            ax.plot(1, 1, 'rx', markersize=10) # Centroid marker
+            ax.set_xlim(-0.5, 2.5); ax.set_ylim(-0.5, 2.5)
             found = True
-        elif pid == "S_1.3_2": # Triangular Area
-            tri = plt.Polygon([[0,0], [3,0], [0,3]], color='green', alpha=0.3)
-            ax.add_patch(tri)
+        elif pid == "S_1.3_2": # Triangle
+            pts = np.array([[0,0], [3,0], [0,3], [0,0]])
+            ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
             ax.plot(1, 1, 'rx', markersize=10)
-            ax.set_xlim(-1, 4); ax.set_ylim(-1, 4)
+            ax.set_xlim(-0.5, 3.5); ax.set_ylim(-0.5, 3.5)
             found = True
-        elif pid == "S_1.3_3": # Composite Shape (L-shape)
+        elif pid == "S_1.3_3": # Composite L-shape
             pts = np.array([[0,0], [4,0], [4,1], [1,1], [1,4], [0,4], [0,0]])
             ax.fill(pts[:,0], pts[:,1], color='orange', alpha=0.3)
             ax.set_xlim(-1, 5); ax.set_ylim(-1, 5)
             found = True
 
-    # 1.4: Equilibrium (Forces and Moments)
+    # --- RESTORED: Equilibrium (S_1.4) ---
     elif pid.startswith("S_1.4"):
-        if pid == "S_1.4_1": # Seesaw/Lever
+        if pid == "S_1.4_1": # Lever Equilibrium
             ax.plot([-3, 3], [0, 0], 'k-', lw=4)
-            ax.plot(0, -0.5, 'k^', markersize=15) # Fulcrum
+            ax.plot(0, -0.2, 'k^', markersize=15) # Fulcrum
             ax.annotate('100 N', xy=(-2.5, -1), xytext=(-2.5, 0), arrowprops=dict(arrowstyle='->', color='red'))
             ax.annotate('F', xy=(2.5, 0), xytext=(2.5, 1), arrowprops=dict(arrowstyle='->', color='blue'))
             ax.set_xlim(-4, 4); ax.set_ylim(-2, 2)
             found = True
-        elif pid == "S_1.4_2": # Moment on a bolt/wrench
+        elif pid == "S_1.4_2": # Wrench/Moment
             ax.plot([0, 2], [0, 0], 'gray', lw=8)
             ax.plot(0, 0, 'ko', markersize=12)
             ax.annotate('', xy=(2, 1), xytext=(2, 0), arrowprops=dict(arrowstyle='->', color='red'))
@@ -176,11 +173,9 @@ def render_lecture_visual(topic, params=None):
         vA = params.get('vA', [15, 5])
         vB = params.get('vB', [10, -5])
         v_rel_x, v_rel_y = vA[0] - vB[0], vA[1] - vB[1]
-
         ax.quiver(0, 0, vA[0], vA[1], color='blue', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_A$')
         ax.quiver(0, 0, vB[0], vB[1], color='red', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_B$')
         ax.quiver(vB[0], vB[1], v_rel_x, v_rel_y, color='green', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_{A/B}$')
-        
         limit = max(np.abs(vA + vB)) + 5
         ax.set_xlim(-limit, limit); ax.set_ylim(-limit, limit)
         ax.set_title(r"Relative Motion: $\vec{v}_A = \vec{v}_B + \vec{v}_{A/B}$")
