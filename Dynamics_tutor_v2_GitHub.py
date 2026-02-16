@@ -29,7 +29,7 @@ st.markdown("""
         justify-content: center;
         text-align: center;
     }
-    /* Improve image rendering quality */
+    /* Improve image rendering quality for readability */
     img {
         image-rendering: -webkit-optimize-contrast;
         image-rendering: crisp-edges;
@@ -140,12 +140,12 @@ elif st.session_state.page == "chat":
     with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        # Removed hardcoded width and enabled container width for maximum resolution/quality
-        st.image(render_problem_diagram(prob), use_container_width=True)
+        # Reverted to previous size (350px width) for better layout balance
+        st.image(render_problem_diagram(prob), width=350)
     
     with top_cols[1]:
         st.subheader("💬 Socratic Tutor")
-        # Kept at 400 height for streamlined look
+        # Chat container height kept at 400 for streamlined look
         chat_container = st.container(height=400)
         with chat_container:
             if p_id not in st.session_state.chat_sessions:
