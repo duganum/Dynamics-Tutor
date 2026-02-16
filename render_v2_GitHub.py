@@ -7,7 +7,7 @@ def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
     Supports nested paths: images/[HW Folder]/images/[ID].png
-    Handles specific spacing in HW 7 and HW 8 directory naming.
+    Handles specific spacing and naming in HW 7 and HW 8 directory naming.
     """
     # Ensure we handle both the full object and just the ID for backward compatibility
     if isinstance(prob, dict):
@@ -67,14 +67,14 @@ def render_problem_diagram(prob):
         hw_subtitle = prob.get("hw_subtitle")
         category = str(prob.get("category", "")).lower()
         
-        # Determine the correct folder name and image filename
         folder_name = None
         
-        # Specific logic for Work and Energy (HW 8)
+        # Specific logic for HW 8 (Work and Energy) folder structure
         if "work" in category or "energy" in category or pid in ["141", "158", "161", "162"]:
             folder_name = "HW 8 (work and energy)"
             image_filename = f"{pid}.png"
         elif hw_title and hw_subtitle:
+            # Handling the specific extra space in the "HW 7  (" directory naming convention
             if hw_title == "HW 7":
                 folder_name = f"HW 7  ({hw_subtitle})" 
             else:
@@ -94,7 +94,7 @@ def render_problem_diagram(prob):
             except Exception:
                 pass
         
-        # Fallback for root images folder
+        # Fallback 1: Root images folder with cleaned name
         if not found:
             clean_name = pid.replace("_", "").replace(".", "").lower()
             img_path_alt = os.path.join('images', f'{clean_name}.png')
