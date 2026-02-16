@@ -35,7 +35,8 @@ if "user_name" not in st.session_state: st.session_state.user_name = None
 if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
 if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-# Problems are now strictly loaded from the problem bank
+# Problems are strictly loaded from the problem bank
+# Ensure these problems in your JSON use IDs matching GitHub filenames (141, 158, 161, 162)
 PROBLEMS = load_problems()
 
 # --- Page 0: Name Entry ---
@@ -83,6 +84,7 @@ if st.session_state.page == "landing":
     categories = {}
     for p in PROBLEMS:
         raw_cat = p.get('category', 'General').split(":")[0].strip()
+        # Clean category for unified grouping
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         
         low_cat = clean_cat.lower()
@@ -100,7 +102,7 @@ if st.session_state.page == "landing":
         if cat_main not in categories: categories[cat_main] = []
         categories[cat_main].append(p)
 
-    # Sort categories to place zzz_Work and Energy at the end
+    # Sort categories to place Work and Energy at the end
     sorted_cat_keys = sorted(categories.keys())
     for cat_key in sorted_cat_keys:
         probs = categories[cat_key]
@@ -112,10 +114,8 @@ if st.session_state.page == "landing":
             for j in range(3):
                 if i + j < len(probs):
                     prob = probs[i + j]
-                    if "hw_subtitle" in prob:
-                        sub_label = prob["hw_subtitle"].capitalize()
-                    else:
-                        sub_label = prob.get('category', '').split(":")[-1].strip()
+                    # Display subtitle or clean category
+                    sub_label = prob.get("hw_subtitle", prob.get('category', '').split(":")[-1].strip()).capitalize()
                         
                     with cols[j]:
                         if st.button(f"**{sub_label}**\n({prob['id']})", key=f"btn_{prob['id']}", use_container_width=True):
@@ -137,6 +137,7 @@ elif st.session_state.page == "chat":
     with cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
+        # Passing prob object to handle directory logic in render file
         st.image(render_problem_diagram(prob), width=400)
     
     with cols[1]:
