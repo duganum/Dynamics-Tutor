@@ -35,7 +35,7 @@ if "user_name" not in st.session_state: st.session_state.user_name = None
 if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
 if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-# Problems are now strictly loaded dynamically to prevent manual ID conflicts
+# Problems are now strictly loaded dynamically
 PROBLEMS = load_problems()
 
 # --- Page 0: Name Entry ---
@@ -79,12 +79,10 @@ if st.session_state.page == "landing":
     st.markdown("---")
     st.subheader("📝 Engineering Review Problems")
     
-    # Grouping Logic
     categories = {}
     for p in PROBLEMS:
         raw_cat = p.get('category', 'General').split(":")[0].strip()
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
-        
         low_cat = clean_cat.lower()
         if "kinematics" in low_cat and "particle" not in low_cat:
             cat_main = "Particle Kinematics"
@@ -96,27 +94,20 @@ if st.session_state.page == "landing":
             cat_main = "zzz_Work and Energy"  
         else:
             cat_main = clean_cat
-            
         if cat_main not in categories: categories[cat_main] = []
         categories[cat_main].append(p)
 
-    # Sort categories to place zzz_Work and Energy at the absolute end
     sorted_cat_keys = sorted(categories.keys())
     for cat_key in sorted_cat_keys:
         probs = categories[cat_key]
         display_name = cat_key.replace("zzz_", "")
-        
         st.markdown(f"#### {display_name}")
         for i in range(0, len(probs), 3):
             cols = st.columns(3)
             for j in range(3):
                 if i + j < len(probs):
                     prob = probs[i + j]
-                    if "hw_subtitle" in prob:
-                        sub_label = prob["hw_subtitle"].capitalize()
-                    else:
-                        sub_label = prob.get('category', '').split(":")[-1].strip()
-                        
+                    sub_label = prob["hw_subtitle"].capitalize() if "hw_subtitle" in prob else prob.get('category', '').split(":")[-1].strip()
                     with cols[j]:
                         if st.button(f"**{sub_label}**\n({prob['id']})", key=f"btn_{prob['id']}", use_container_width=True):
                             st.session_state.current_prob = prob
@@ -133,16 +124,17 @@ elif st.session_state.page == "chat":
     if p_id not in st.session_state.grading_data: st.session_state.grading_data[p_id] = {'solved': set()}
     solved = st.session_state.grading_data[p_id]['solved']
     
-    # UI Layout: Reordered per request
-    cols = st.columns([2, 1])
+    # 1. Top Section: Problem View (Left) and Chat (Right)
+    top_cols = st.columns([1, 1])
     
-    with cols[0]: # Problem and Chat Area
+    with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        st.image(render_problem_diagram(prob), width=400)
-        
-        st.markdown("---")
-        chat_container = st.container(height=450)
+        st.image(render_problem_diagram(prob), use_container_width=True)
+    
+    with top_cols[1]:
+        st.subheader("💬 Socratic Tutor")
+        chat_container = st.container(height=500)
         with chat_container:
             if p_id not in st.session_state.chat_sessions:
                 sys_prompt = (
@@ -170,12 +162,17 @@ elif st.session_state.page == "chat":
             except Exception:
                 st.warning("⚠️ The professor is busy right now.")
 
-    with cols[1]: # Session Analysis (Now on the right)
+    # 2. Bottom Section: Session Analysis and Navigation
+    st.markdown("---")
+    bot_col1, bot_col2 = st.columns([2, 1])
+    
+    with bot_col1:
         st.markdown("### 📝 Session Analysis")
-        st.write("Work through the derivation with the tutor.")
+        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide feedback.", height=100)
         
-        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide feedback.", height=150)
-        if st.button("💾 Submit Session", use_container_width=True):
+    with bot_col2:
+        st.write("Click below to finalize this session.")
+        if st.button("🚀 Submit Session", use_container_width=True):
             history_text = ""
             if p_id in st.session_state.chat_sessions:
                 for msg in st.session_state.chat_sessions[p_id].history:
@@ -187,11 +184,9 @@ elif st.session_state.page == "chat":
                 st.session_state.last_report = report
                 st.session_state.page = "report_view"
                 st.rerun()
+        
+        if st.button("🏠 Exit to Home", use_container_width=True):
+            st.session_state.page = "landing"
+            st.rerun()
 
-    # Footer Navigation
-    st.markdown("---")
-    if st.button("🏠 Exit to Home", use_container_width=False):
-        st.session_state.page = "landing"
-        st.rerun()
-
-# --- (Other Page Logic like lecture/report_view would follow here) ---
+# (Remaining logic for interactive lecture and report view remains unchanged)
