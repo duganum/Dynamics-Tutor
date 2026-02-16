@@ -153,8 +153,17 @@ elif st.session_state.page == "chat":
         if p_id not in st.session_state.chat_sessions:
             sys_prompt = (
                 f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
-                f"Context: {prob['statement']}. Use LaTeX for all math. "
-                "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Guide them step-by-step."
+                f"REFERENCE DATA: {prob['statement']}. "
+                "### CORE INSTRUCTIONS:\n"
+                "1. LITERAL INTERPRETATION: Use the provided REFERENCE DATA as the absolute source of truth. "
+                "If the problem specifies a coordinate system, angle reference (e.g., from vertical), "
+                "or specific constant (e.g., gravity, friction), do not 'correct' it to standard conventions.\n"
+                "2. GEOMETRY VALIDATION: Before questioning a student's trig functions (sin/cos), "
+                "re-verify the angle's reference point in the REFERENCE DATA. If the student matches "
+                "the problem's specific geometry, confirm they are correct.\n"
+                "3. SOCRATIC METHOD: Never provide direct answers. Guide them with leading questions "
+                "based strictly on the physics of the provided problem.\n"
+                "4. MATH: Render all formulas in LaTeX."
             )
             try:
                 model = get_gemini_model(sys_prompt)
@@ -217,3 +226,4 @@ elif st.session_state.page == "chat":
         if st.button("🏠 Exit to Home", use_container_width=True):
             st.session_state.page = "landing"
             st.rerun()
+
