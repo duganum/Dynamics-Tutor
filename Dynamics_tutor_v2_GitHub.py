@@ -35,7 +35,7 @@ if "user_name" not in st.session_state: st.session_state.user_name = None
 if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
 if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-# Manual inclusion of Work and Energy problems with IDs matching your GitHub directory image filenames
+# Manual inclusion of Work and Energy problems matching GitHub directory
 NEW_WORK_ENERGY_PROBLEMS = [
     {
         "id": "158",
@@ -60,7 +60,7 @@ NEW_WORK_ENERGY_PROBLEMS = [
     }
 ]
 
-# Merge with existing problem bank
+# Merge with existing problem bank from logic_v2_GitHub
 PROBLEMS = NEW_WORK_ENERGY_PROBLEMS + load_problems()
 
 # --- Page 0: Name Entry ---
@@ -106,6 +106,7 @@ if st.session_state.page == "landing":
     categories = {}
     for p in PROBLEMS:
         raw_cat = p.get('category', 'General').split(":")[0].strip()
+        # Clean naming for grouping
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         
         low_cat = clean_cat.lower()
@@ -144,7 +145,7 @@ if st.session_state.page == "landing":
                             st.rerun()
     st.markdown("---")
 
-# --- Page 2: Socratic Chat (Practice Problems) ---
+# --- Page 2: Socratic Chat ---
 elif st.session_state.page == "chat":
     prob = st.session_state.current_prob
     p_id = prob['id']
@@ -155,14 +156,14 @@ elif st.session_state.page == "chat":
     with cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        # Passing prob to your render function which must handle the HW 8 path logic
+        # Diagram rendering with folder logic
         st.image(render_problem_diagram(prob), width=400)
     
     with cols[1]:
         st.markdown("### 📝 Session Analysis")
         st.write("Work through the derivation with the tutor below.")
         
-        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide a feedback to your professor.")
+        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide feedback to your professor.")
         if st.button("⬅️ Submit Session", use_container_width=True):
             history_text = ""
             if p_id in st.session_state.chat_sessions:
@@ -184,7 +185,7 @@ elif st.session_state.page == "chat":
             sys_prompt = (
                 f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
                 f"Context: {prob['statement']}. Use LaTeX for all math. "
-                "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Break every concept into tiny steps."
+                "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Guide them step-by-step."
             )
             model = get_gemini_model(sys_prompt)
             st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
@@ -194,7 +195,7 @@ elif st.session_state.page == "chat":
                 st.markdown(message.parts[0].text)
 
         if not st.session_state.chat_sessions[p_id].history:
-            st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe the first step of your analysis to begin.")
+            st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe the first step of your analysis.")
 
     if user_input := st.chat_input("Your analysis..."):
         for target, val in prob['targets'].items():
@@ -256,11 +257,9 @@ elif st.session_state.page == "lecture":
 
     with col_chat:
         st.subheader("💬 Socratic Discussion")
-        
         lecture_chat_container = st.container(height=500)
         with lecture_chat_container:
             initial_greeting = f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?"
-            
             if st.session_state.lecture_session is not None:
                 for msg in st.session_state.lecture_session.history:
                     with st.chat_message("assistant" if msg.role == "model" else "user"):
@@ -281,7 +280,6 @@ elif st.session_state.page == "lecture":
                         {"role": "user", "parts": ["Hi Professor."]},
                         {"role": "model", "parts": [initial_greeting]}
                     ])
-                
                 st.session_state.lecture_session.send_message(lecture_input)
                 st.rerun()
             except Exception:
