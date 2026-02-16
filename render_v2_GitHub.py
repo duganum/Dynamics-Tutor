@@ -7,7 +7,7 @@ def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
     Supports nested paths: images/[HW Folder]/images/[ID].png
-    Handles specific spacing in HW 7 directory naming.
+    Handles specific spacing in HW 7 and HW 8 directory naming.
     """
     # Ensure we handle both the full object and just the ID for backward compatibility
     if isinstance(prob, dict):
@@ -65,14 +65,23 @@ def render_problem_diagram(prob):
     if not found:
         hw_title = prob.get("hw_title")
         hw_subtitle = prob.get("hw_subtitle")
+        category = prob.get("category", "").lower()
         
-        if hw_title and hw_subtitle:
+        # Determine the correct folder name and image filename
+        folder_name = None
+        
+        # New: Specific logic for Work and Energy (HW 8)
+        if "work" in category or "energy" in category or pid in ["141", "158", "161", "162"]:
+            folder_name = "HW 8 (work and energy)"
+            image_filename = f"{pid}.png"
+        elif hw_title and hw_subtitle:
             if hw_title == "HW 7":
                 folder_name = f"HW 7  ({hw_subtitle})" 
             else:
                 folder_name = f"{hw_title} ({hw_subtitle})"
-            
             image_filename = f"{pid.split('_')[-1]}.png"
+
+        if folder_name:
             img_path = os.path.join('images', folder_name, 'images', image_filename)
             
             try:
@@ -85,6 +94,7 @@ def render_problem_diagram(prob):
             except Exception:
                 pass
         
+        # Fallback for root images folder
         if not found:
             clean_name = pid.replace("_", "").replace(".", "").lower()
             img_path_alt = os.path.join('images', f'{clean_name}.png')
@@ -105,7 +115,6 @@ def render_problem_diagram(prob):
 
     ax.axis('off')
     
-    # FIX: Wrap tight_layout in a try-except block
     try:
         plt.tight_layout()
     except Exception:
@@ -154,12 +163,9 @@ def render_lecture_visual(topic, params=None):
 
     elif topic == "Normal & Tangent":
         v, rho = params.get('v', 20), params.get('rho', 50)
-        # Draw path (arc)
         theta_arc = np.linspace(np.pi/4, 3*np.pi/4, 100)
         ax.plot(rho * np.cos(theta_arc), rho * np.sin(theta_arc) - rho, 'k--', alpha=0.5)
-        # Position at center of arc (top)
         ax.plot(0, 0, 'ko', markersize=8)
-        # Acceleration Vectors
         ax.quiver(0, 0, v, 0, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$v$ (Tangent)')
         ax.quiver(0, 0, 0, -(v**2/rho), color='red', angles='xy', scale_units='xy', scale=1, label=r'$a_n = v^2/\rho$')
         ax.set_xlim(-rho, rho); ax.set_ylim(-rho, rho/2)
@@ -171,14 +177,12 @@ def render_lecture_visual(topic, params=None):
         theta = np.radians(theta_deg)
         x, y = r * np.cos(theta), r * np.sin(theta)
         ax.plot([0, x], [0, y], 'k-o', lw=2)
-        # Unit vectors
         ax.quiver(x, y, np.cos(theta)*5, np.sin(theta)*5, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$e_r$')
         ax.quiver(x, y, -np.sin(theta)*5, np.cos(theta)*5, color='red', angles='xy', scale_units='xy', scale=1, label=r'$e_\theta$')
         ax.set_xlim(-r-10, r+10); ax.set_ylim(-r-10, r+10)
         ax.set_title(r"Polar Coordinates: Radial & Transverse")
         ax.legend()
 
-    # FIX: Wrap tight_layout in a try-except block
     try:
         plt.tight_layout()
     except Exception:
