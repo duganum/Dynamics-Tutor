@@ -35,7 +35,33 @@ if "user_name" not in st.session_state: st.session_state.user_name = None
 if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
 if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-PROBLEMS = load_problems()
+# Manual inclusion of Work and Energy problems mapped to the identified directory system
+NEW_WORK_ENERGY_PROBLEMS = [
+    {
+        "id": "158",
+        "category": "Work and Energy",
+        "statement": "The collar has a mass of 2 kg and is attached to the light spring, which has a stiffness of 30 N/m and an unstretched length of 1.5 m. The collar is released from rest at A and slides up the smooth rod under the action of the constant 50-N force. Calculate the velocity v of the collar as it passes position B.",
+        "targets": { "v": 5.06 },
+        "required_units": ["m/s"]
+    },
+    {
+        "id": "161",
+        "category": "Work and Energy",
+        "statement": "The 5-kg cylinder is released from rest in the position shown and compresses the spring of stiffness k = 1.8 kN/m. Determine the maximum compression x_max of the spring.",
+        "targets": { "x_max": 0.105 },
+        "required_units": ["m"]
+    },
+    {
+        "id": "141",
+        "category": "Work and Energy",
+        "statement": "A 175-lb pole vaulter carrying a uniform 16-ft, 10-lb pole approaches the jump with a velocity v and manages to barely clear the bar set at a height of 18 ft. Calculate the minimum possible value of v required.",
+        "targets": { "v": 30.5 },
+        "required_units": ["ft/sec"]
+    }
+]
+
+# Merge with existing problem bank
+PROBLEMS = NEW_WORK_ENERGY_PROBLEMS + load_problems()
 
 # --- Page 0: Name Entry ---
 if st.session_state.user_name is None:
@@ -80,10 +106,8 @@ if st.session_state.page == "landing":
     categories = {}
     for p in PROBLEMS:
         raw_cat = p.get('category', 'General').split(":")[0].strip()
-        # Clean the category for display grouping
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         
-        # Categorization Logic
         low_cat = clean_cat.lower()
         if "kinematics" in low_cat and "particle" not in low_cat:
             cat_main = "Particle Kinematics"
@@ -99,7 +123,6 @@ if st.session_state.page == "landing":
         if cat_main not in categories: categories[cat_main] = []
         categories[cat_main].append(p)
 
-    # Render Category Headers and Problem Buttons
     for cat_name, probs in categories.items():
         st.markdown(f"#### {cat_name}")
         for i in range(0, len(probs), 3):
@@ -132,6 +155,7 @@ elif st.session_state.page == "chat":
     with cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
+        # Updated to ensure correct pathing based on the directory image
         st.image(render_problem_diagram(prob), width=400)
     
     with cols[1]:
