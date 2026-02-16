@@ -130,7 +130,8 @@ elif st.session_state.page == "chat":
     with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        st.image(render_problem_diagram(prob), use_container_width=True)
+        # Render image at ~50% width of the column for high quality and reduced size
+        st.image(render_problem_diagram(prob), width=350)
     
     with top_cols[1]:
         st.subheader("💬 Socratic Tutor")
@@ -188,5 +189,3 @@ elif st.session_state.page == "chat":
         if st.button("🏠 Exit to Home", use_container_width=True):
             st.session_state.page = "landing"
             st.rerun()
-
-# (Remaining logic for interactive lecture and report view remains unchanged)
