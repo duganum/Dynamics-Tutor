@@ -9,12 +9,12 @@ from render_v2_GitHub import render_problem_diagram, render_lecture_visual
 # 1. Page Configuration
 st.set_page_config(page_title="Socratic Engineering Tutor", layout="wide")
 
-# 2. CSS: Adjusted Spacing and UI consistency
+# 2. CSS: Refined Spacing and UI consistency
 st.markdown("""
     <style>
-    /* Add just enough space at the top so the window shows up clearly */
+    /* Add specific padding to the top so the window header shows up clearly */
     .block-container {
-        padding-top: 2.5rem;
+        padding-top: 2rem;
         padding-bottom: 0rem;
     }
     div.stButton > button {
@@ -28,6 +28,11 @@ st.markdown("""
         align-items: center;
         justify-content: center;
         text-align: center;
+    }
+    /* Improve image rendering quality */
+    img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -135,12 +140,13 @@ elif st.session_state.page == "chat":
     with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        # Render image increased by 20% (350 -> 420) for better readability
-        st.image(render_problem_diagram(prob), width=420)
+        # Removed hardcoded width and enabled container width for maximum resolution/quality
+        st.image(render_problem_diagram(prob), use_container_width=True)
     
     with top_cols[1]:
         st.subheader("💬 Socratic Tutor")
-        chat_container = st.container(height=500)
+        # Kept at 400 height for streamlined look
+        chat_container = st.container(height=400)
         with chat_container:
             if p_id not in st.session_state.chat_sessions:
                 sys_prompt = (
