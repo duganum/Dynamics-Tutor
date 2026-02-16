@@ -35,7 +35,7 @@ if "user_name" not in st.session_state: st.session_state.user_name = None
 if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
 if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-# Manual inclusion of Work and Energy problems with IDs matching your GitHub directory image filenames
+# Manual inclusion of Work and Energy problems matching GitHub directory
 NEW_WORK_ENERGY_PROBLEMS = [
     {
         "id": "158",
@@ -104,41 +104,45 @@ if st.session_state.page == "landing":
     st.markdown("---")
     st.subheader("📝 Engineering Review Problems")
     
-    # Separate Work and Energy from other categories
+    # Grouping Logic
     categories = {}
-    work_energy_list = []
-    
     for p in PROBLEMS:
         raw_cat = p.get('category', 'General').split(":")[0].strip()
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         
         low_cat = clean_cat.lower()
-        if "work" in low_cat or "energy" in low_cat:
-            work_energy_list.append(p)
-            continue # Skip adding to the standard categories dict
-            
         if "kinematics" in low_cat and "particle" not in low_cat:
             cat_main = "Particle Kinematics"
         elif "curvilinear" in low_cat:
             cat_main = "Kinetics of Particles (Curvilinear)"
         elif "rectilinear" in low_cat:
             cat_main = "Kinetics of Particles (Rectilinear)"
+        elif "work" in low_cat or "energy" in low_cat:
+            cat_main = "zzz_Work and Energy"  # Prefix to force it to the bottom during sort
         else:
             cat_main = clean_cat
             
         if cat_main not in categories: categories[cat_main] = []
         categories[cat_main].append(p)
 
-    # Render standard categories (Statics, Kinematics, etc.)
-    for cat_name, probs in categories.items():
-        st.markdown(f"#### {cat_name}")
+    # Sort categories alphabetically, then render
+    sorted_cat_keys = sorted(categories.keys())
+    for cat_key in sorted_cat_keys:
+        probs = categories[cat_key]
+        display_name = cat_key.replace("zzz_", "") # Remove sorting prefix for display
+        
+        st.markdown(f"#### {display_name}")
         for i in range(0, len(probs), 3):
             cols = st.columns(3)
             for j in range(3):
                 if i + j < len(probs):
                     prob = probs[i + j]
-                    sub_label = prob.get('hw_subtitle', prob.get('category', '').split(":")[-1].strip()).capitalize()
-                    
+                    # Format label consistently
+                    if "hw_subtitle" in prob:
+                        sub_label = prob["hw_subtitle"].capitalize()
+                    else:
+                        sub_label = prob.get('category', '').split(":")[-1].strip()
+                        
                     with cols[j]:
                         if st.button(f"**{sub_label}**\n({prob['id']})", key=f"btn_{prob['id']}", use_container_width=True):
                             st.session_state.current_prob = prob
@@ -146,32 +150,9 @@ if st.session_state.page == "landing":
                             if prob['id'] in st.session_state.chat_sessions:
                                 del st.session_state.chat_sessions[prob['id']]
                             st.rerun()
-
-    # Render Work and Energy at the VERY BOTTOM
-    if work_energy_list:
-        st.markdown("---")
-        st.subheader("📌 Work and Energy")
-        for i in range(0, len(work_energy_list), 3):
-            cols = st.columns(3)
-            for j in range(3):
-                if i + j < len(work_energy_list):
-                    prob = work_energy_list[i + j]
-                    # Display either subtitle or generic label
-                    sub_label = "Work and Energy"
-                    if "hw_subtitle" in prob:
-                         sub_label = prob["hw_subtitle"].capitalize()
-                    
-                    with cols[j]:
-                        if st.button(f"**{sub_label}**\n({prob['id']})", key=f"btn_we_{prob['id']}", use_container_width=True):
-                            st.session_state.current_prob = prob
-                            st.session_state.page = "chat"
-                            if prob['id'] in st.session_state.chat_sessions:
-                                del st.session_state.chat_sessions[prob['id']]
-                            st.rerun()
-
     st.markdown("---")
 
-# --- Page 2: Socratic Chat (Practice Problems) ---
+# --- Page 2: Socratic Chat ---
 elif st.session_state.page == "chat":
     prob = st.session_state.current_prob
     p_id = prob['id']
@@ -188,7 +169,7 @@ elif st.session_state.page == "chat":
         st.markdown("### 📝 Session Analysis")
         st.write("Work through the derivation with the tutor below.")
         
-        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide a feedback to your professor.")
+        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide feedback to your professor.")
         if st.button("⬅️ Submit Session", use_container_width=True):
             history_text = ""
             if p_id in st.session_state.chat_sessions:
@@ -210,7 +191,7 @@ elif st.session_state.page == "chat":
             sys_prompt = (
                 f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
                 f"Context: {prob['statement']}. Use LaTeX for all math. "
-                "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Break every concept into tiny steps."
+                "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Guide them step-by-step."
             )
             model = get_gemini_model(sys_prompt)
             st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
@@ -220,7 +201,7 @@ elif st.session_state.page == "chat":
                 st.markdown(message.parts[0].text)
 
         if not st.session_state.chat_sessions[p_id].history:
-            st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe the first step of your analysis to begin.")
+            st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe the first step of your analysis.")
 
     if user_input := st.chat_input("Your analysis..."):
         for target, val in prob['targets'].items():
@@ -282,11 +263,9 @@ elif st.session_state.page == "lecture":
 
     with col_chat:
         st.subheader("💬 Socratic Discussion")
-        
         lecture_chat_container = st.container(height=500)
         with lecture_chat_container:
             initial_greeting = f"Hello {st.session_state.user_name}. Looking at the {topic} simulation, what do you notice about the motion?"
-            
             if st.session_state.lecture_session is not None:
                 for msg in st.session_state.lecture_session.history:
                     with st.chat_message("assistant" if msg.role == "model" else "user"):
@@ -307,7 +286,6 @@ elif st.session_state.page == "lecture":
                         {"role": "user", "parts": ["Hi Professor."]},
                         {"role": "model", "parts": [initial_greeting]}
                     ])
-                
                 st.session_state.lecture_session.send_message(lecture_input)
                 st.rerun()
             except Exception:
