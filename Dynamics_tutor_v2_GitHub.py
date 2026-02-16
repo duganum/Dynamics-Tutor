@@ -94,23 +94,31 @@ if st.session_state.page == "landing":
         raw_cat = p.get('category', 'General').split(":")[0].strip()
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         low_cat = clean_cat.lower()
-        if "kinematics" in low_cat and "particle" not in low_cat:
-            cat_main = "Particle Kinematics"
+        
+        # Priority Sorting Logic
+        if "statics" in low_cat:
+            cat_main = "00_Statics" # Force to top
+        elif "kinematics" in low_cat and "particle" not in low_cat:
+            cat_main = "01_Particle Kinematics"
         elif "curvilinear" in low_cat:
-            cat_main = "Kinetics of Particles (Curvilinear)"
+            cat_main = "02_Kinetics of Particles (Curvilinear)"
         elif "rectilinear" in low_cat:
-            cat_main = "Kinetics of Particles (Rectilinear)"
+            cat_main = "03_Kinetics of Particles (Rectilinear)"
         elif "work" in low_cat or "energy" in low_cat:
             cat_main = "zzz_Work and Energy"  
         else:
             cat_main = clean_cat
+            
         if cat_main not in categories: categories[cat_main] = []
         categories[cat_main].append(p)
 
+    # Sort keys to ensure priority labels determine order
     sorted_cat_keys = sorted(categories.keys())
     for cat_key in sorted_cat_keys:
         probs = categories[cat_key]
-        display_name = cat_key.replace("zzz_", "")
+        # Clean display name for the user
+        display_name = re.sub(r'^[0-9a-z_]+_', '', cat_key) 
+        
         st.markdown(f"#### {display_name}")
         for i in range(0, len(probs), 3):
             cols = st.columns(3)
@@ -134,18 +142,15 @@ elif st.session_state.page == "chat":
     if p_id not in st.session_state.grading_data: st.session_state.grading_data[p_id] = {'solved': set()}
     solved = st.session_state.grading_data[p_id]['solved']
     
-    # 1. Top Section: Problem View (Left) and Chat (Right)
     top_cols = st.columns([1, 1])
     
     with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        # Reverted to previous size (350px width) for better layout balance
         st.image(render_problem_diagram(prob), width=350)
     
     with top_cols[1]:
         st.subheader("💬 Socratic Tutor")
-        # Chat container height kept at 400 for streamlined look
         chat_container = st.container(height=400)
         with chat_container:
             if p_id not in st.session_state.chat_sessions:
@@ -174,7 +179,6 @@ elif st.session_state.page == "chat":
             except Exception:
                 st.warning("⚠️ The professor is busy right now.")
 
-    # 2. Bottom Section: Session Analysis and Navigation
     st.markdown("---")
     bot_col1, bot_col2 = st.columns([2, 1])
     
