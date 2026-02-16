@@ -35,31 +35,7 @@ if "user_name" not in st.session_state: st.session_state.user_name = None
 if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
 if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-# Updated PROBLEM list including the new Work and Energy problems
-# In a production environment, these would be loaded via load_problems() if updated in the source JSON
-PROBLEMS = [
-    {
-        "id": "WE_3.1_1",
-        "category": "Work and Energy",
-        "statement": "A 2-kg collar is attached to a spring ($k = 30$ N/m, unstretched length = 1.5 m) and is released from rest at A. It slides up a smooth vertical rod under a constant 50-N force acting at a 30-degree angle from the rod. Calculate the velocity $v$ of the collar as it passes position B, located 1.5 m above A. Use $g = 9.81$ m/s$^2$.",
-        "targets": { "v": 5.06 },
-        "required_units": ["m/s"]
-    },
-    {
-        "id": "WE_3.1_2",
-        "category": "Work and Energy",
-        "statement": "A 5-kg cylinder is released from rest 100 mm above a spring with stiffness $k = 1.8$ kN/m. Determine the maximum compression $x_{max}$ of the spring. Use $g = 9.81$ m/s$^2$.",
-        "targets": { "x_{max}": 0.105 },
-        "required_units": ["m", "mm"]
-    },
-    {
-        "id": "WE_3.1_3",
-        "category": "Work and Energy",
-        "statement": "A 175-lb pole vaulter carries a uniform 16-ft, 10-lb pole. The center of gravity of the vaulter and the horizontal pole are both 42 in. above the ground during the approach. If he barely clears a bar at 18 ft with zero velocity, calculate the minimum initial velocity $v$ required.",
-        "targets": { "v": 30.5 },
-        "required_units": ["ft/sec"]
-    }
-] + load_problems()
+PROBLEMS = load_problems()
 
 # --- Page 0: Name Entry ---
 if st.session_state.user_name is None:
@@ -104,15 +80,18 @@ if st.session_state.page == "landing":
     categories = {}
     for p in PROBLEMS:
         raw_cat = p.get('category', 'General').split(":")[0].strip()
-        clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").strip()
+        # Clean the category for display grouping
+        clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         
-        if "kinematics" in clean_cat.lower() and "particle" not in clean_cat.lower():
+        # Categorization Logic
+        low_cat = clean_cat.lower()
+        if "kinematics" in low_cat and "particle" not in low_cat:
             cat_main = "Particle Kinematics"
-        elif "curvilinear" in clean_cat.lower():
+        elif "curvilinear" in low_cat:
             cat_main = "Kinetics of Particles (Curvilinear)"
-        elif "rectilinear" in clean_cat.lower():
+        elif "rectilinear" in low_cat:
             cat_main = "Kinetics of Particles (Rectilinear)"
-        elif "work" in clean_cat.lower() or "energy" in clean_cat.lower():
+        elif "work" in low_cat or "energy" in low_cat:
             cat_main = "Work and Energy"
         else:
             cat_main = clean_cat
@@ -120,6 +99,7 @@ if st.session_state.page == "landing":
         if cat_main not in categories: categories[cat_main] = []
         categories[cat_main].append(p)
 
+    # Render Category Headers and Problem Buttons
     for cat_name, probs in categories.items():
         st.markdown(f"#### {cat_name}")
         for i in range(0, len(probs), 3):
@@ -152,7 +132,6 @@ elif st.session_state.page == "chat":
     with cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        # Dynamic rendering of diagrams based on ID
         st.image(render_problem_diagram(prob), width=400)
     
     with cols[1]:
