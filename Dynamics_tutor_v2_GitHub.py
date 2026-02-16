@@ -3,7 +3,7 @@ import json
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-from google.api_core import exceptions  # Added for rate limit handling
+from google.api_core import exceptions  # For rate limit handling
 from logic_v2_GitHub import get_gemini_model, load_problems, check_numeric_match, analyze_and_send_report
 from render_v2_GitHub import render_problem_diagram, render_lecture_visual
 
@@ -148,20 +148,21 @@ elif st.session_state.page == "chat":
     with top_cols[1]:
         st.subheader("💬 Socratic Tutor")
         chat_container = st.container(height=400)
-        with chat_container:
-            if p_id not in st.session_state.chat_sessions:
-                sys_prompt = (
-                    f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
-                    f"Context: {prob['statement']}. Use LaTeX for all math. "
-                    "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Guide them step-by-step."
-                )
-                # Defensive call to model initialization
-                try:
-                    model = get_gemini_model(sys_prompt)
-                    st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
-                except Exception:
-                    st.error("Could not reach the AI service. Please refresh.")
+        
+        # Ensure model is initialized
+        if p_id not in st.session_state.chat_sessions:
+            sys_prompt = (
+                f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
+                f"Context: {prob['statement']}. Use LaTeX for all math. "
+                "STRICT SOCRATIC RULES: 1. NEVER give a full explanation. 2. Guide them step-by-step."
+            )
+            try:
+                model = get_gemini_model(sys_prompt)
+                st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
+            except Exception as e:
+                st.error(f"Initialization Error: {e}")
 
+        with chat_container:
             if p_id in st.session_state.chat_sessions:
                 for message in st.session_state.chat_sessions[p_id].history:
                     with st.chat_message("assistant" if message.role == "model" else "user"):
@@ -171,19 +172,22 @@ elif st.session_state.page == "chat":
                     st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe your first step.")
 
         if user_input := st.chat_input("Your analysis..."):
+            # Grading check logic
             for target, val in prob['targets'].items():
                 if target not in solved and check_numeric_match(user_input, val):
                     st.session_state.grading_data[p_id]['solved'].add(target)
             
-            # Rate Limit Protection Wrapper
-            try:
-                with st.spinner("Tutor is thinking..."):
-                    st.session_state.chat_sessions[p_id].send_message(user_input)
-                st.rerun()
-            except exceptions.ResourceExhausted:
-                st.error("⚠️ System limit reached. Please wait 60 seconds before sending another message.")
-            except Exception as e:
-                st.warning("⚠️ The professor is busy right now. Please try again in a moment.")
+            # API Communication logic
+            if p_id in st.session_state.chat_sessions:
+                try:
+                    with st.spinner("Tutor is thinking..."):
+                        st.session_state.chat_sessions[p_id].send_message(user_input)
+                    st.rerun()  # Only rerun on success
+                except exceptions.ResourceExhausted:
+                    st.error("⚠️ System limit reached. Please wait 60 seconds.")
+                except Exception as e:
+                    # Provide the real error so you can see what's actually happening
+                    st.error(f"Tutor Error: {e}")
 
     st.markdown("---")
     bot_col1, bot_col2 = st.columns([2, 1])
@@ -207,10 +211,8 @@ elif st.session_state.page == "chat":
                     st.session_state.last_report = report
                     st.session_state.page = "report_view"
                     st.rerun()
-            except exceptions.ResourceExhausted:
-                st.error("Rate limit hit during reporting. Please wait a minute and try again.")
-            except Exception:
-                st.error("An error occurred while generating the report.")
+            except Exception as e:
+                st.error(f"Reporting Error: {e}")
         
         if st.button("🏠 Exit to Home", use_container_width=True):
             st.session_state.page = "landing"
