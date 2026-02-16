@@ -35,7 +35,7 @@ if "user_name" not in st.session_state: st.session_state.user_name = None
 if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
 if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-# Manual inclusion of Work and Energy problems mapped to the identified directory system
+# Manual inclusion of Work and Energy problems with IDs matching your GitHub directory image filenames
 NEW_WORK_ENERGY_PROBLEMS = [
     {
         "id": "158",
@@ -155,7 +155,7 @@ elif st.session_state.page == "chat":
     with cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        # Updated to ensure correct pathing based on the directory image
+        # Passing prob to your render function which must handle the HW 8 path logic
         st.image(render_problem_diagram(prob), width=400)
     
     with cols[1]:
