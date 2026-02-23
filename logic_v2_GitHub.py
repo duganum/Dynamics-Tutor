@@ -21,7 +21,7 @@ def get_gemini_model(system_instruction):
 
 def load_problems():
     """저장소의 JSON 파일에서 문제 목록을 불러오고 새 문제를 병합합니다."""
-    # New problems to be integrated
+    # New problems to be integrated (Impact Problems 239, 249, 252 added)
     new_problems = [
         {
             "id": "176",
@@ -43,6 +43,27 @@ def load_problems():
             "statement": "The cylindrical plug A of mass m_A is released from rest at B and slides down the smooth circular guide. The plug strikes the block C and becomes embedded in it. Write the expression for the distance s which the block and plug slide before coming to rest. The coefficient of kinetic friction between the block and the horizontal surface is μ_k.",
             "targets": { "s": "m_A^2 * r / (μ_k * (m_A + m_C)^2)" },
             "required_units": ["m"]
+        },
+        {
+            "id": "239",
+            "category": "Impact",
+            "statement": "Tennis balls are usually rejected if they fail to rebound to waist level when dropped from shoulder level. If a ball just passes the test as indicated in the figure, determine the coefficient of restitution $e$ and the percentage $n$ of the original energy lost during the impact.",
+            "targets": { "e": 0.829, "n": 31.2 },
+            "required_units": ["unitless", "%"]
+        },
+        {
+            "id": "249",
+            "category": "Impact",
+            "statement": "In the selection of the ram of a pile driver, it is desired that the ram lose all of its kinetic energy at each blow. Hence, the velocity of the ram is zero immediately after impact. The mass of each pile to be driven is 300 kg, and experience has shown that a coefficient of restitution of 0.3 can be expected. What should be the mass $m$ of the ram? Compute the velocity $v$ of the pile immediately after impact if the ram is dropped from a height of 4 m onto the pile. Also compute the energy loss $\Delta E$ due to impact at each blow.",
+            "targets": { "m": 90.0, "v": 2.66, "\Delta E|": 3530 },
+            "required_units": ["kg", "m/s", "J"]
+        },
+        {
+            "id": "252",
+            "category": "Impact",
+            "statement": "Determine the value of the coefficient of restitution $e$ which results in the final velocity $v'$ being perpendicular to the initial velocity $v$. The initial velocity $v$ makes an angle of 60° with the wall as shown.",
+            "targets": { "e": 0.333 },
+            "required_units": ["unitless"]
         }
     ]
 
