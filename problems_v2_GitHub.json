@@ -272,12 +272,13 @@
   },
   {
     "id": "209",
-    "category": "Work and Energy / Momentum",
+    "category": "Impulse and Momentum",
     "statement": "The cylindrical plug $A$ of mass $m_A$ is released from rest at $B$ and slides down the smooth circular guide of radius $r$. The plug strikes the block $C$ and becomes embedded in it. Write the expression for the distance $s$ which the block and plug slide before coming to rest. The coefficient of kinetic friction between the block and the horizontal surface is $\\mu_k$.",
     "targets": { "s": "m_A^2 * r / (\\mu_k * (m_A + m_C)^2)" },
     "required_units": ["m"]
   }  
 ]
+
 
 
 
