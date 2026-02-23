@@ -252,8 +252,33 @@
     "statement": "A 175-lb pole vaulter carries a uniform 16-ft, 10-lb pole. The center of gravity of the vaulter and the horizontal pole are both 42 in. above the ground during the approach. If he barely clears a bar at 18 ft with zero velocity, calculate the minimum initial velocity $v$ required.",
     "targets": { "v": 30.5 },
     "required_units": ["ft/sec"]
-  }
+  },
+  {
+    "id": "176",
+    "category": "Impulse and Momentum",
+    "statement": "A 75-g projectile traveling at 600 m/s strikes and becomes embedded in the 50-kg block, which is initially stationary. Compute the energy lost during the impact. Express your answer as an absolute value $|\\Delta E|$ and as a percentage $n$ of the original system energy $E$.",
+    "targets": {
+      "|\\Delta E|": 13480,
+      "n": 99.85
+    },
+    "required_units": ["J", "%"]
+  },
+  {
+    "id": "198",
+    "category": "Impulse and Momentum",
+    "statement": "The 450-kg ram of a pile driver falls 1.4 m from rest and strikes the top of a 240-kg pile embedded 0.9 m in the ground. Upon impact the ram is seen to move with the pile with no noticeable rebound. Determine the velocity $v$ of the pile and ram immediately after impact.",
+    "targets": { "v": 3.42 },
+    "required_units": ["m/s"]
+  },
+  {
+    "id": "209",
+    "category": "Work and Energy / Momentum",
+    "statement": "The cylindrical plug $A$ of mass $m_A$ is released from rest at $B$ and slides down the smooth circular guide of radius $r$. The plug strikes the block $C$ and becomes embedded in it. Write the expression for the distance $s$ which the block and plug slide before coming to rest. The coefficient of kinetic friction between the block and the horizontal surface is $\\mu_k$.",
+    "targets": { "s": "m_A^2 * r / (\\mu_k * (m_A + m_C)^2)" },
+    "required_units": ["m"]
+  }  
 ]
+
 
 
 
