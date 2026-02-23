@@ -8,6 +8,7 @@ def render_problem_diagram(prob):
     Generates procedural FBDs for Statics or loads external images for Dynamics.
     Supports nested paths: images/[HW Folder]/images/[ID].png
     """
+    # Ensure we handle both the full object and just the ID for backward compatibility
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
     else:
@@ -43,10 +44,15 @@ def render_problem_diagram(prob):
         
         folder_name = None
         
-        # Mapping for HW 9 (Impuls and momentum) based on your directory
-        if any(x in category for x in ["momentum", "impulse"]) or pid in ["176", "198", "209"]:
+        # Mapping for HW 10 (Impact) based on your true directory
+        if "impact" in category or pid in ["239", "243", "249", "252"]:
+            folder_name = "HW 10 (Impact)"
+            image_filename = f"{pid}.png"
+        # Mapping for HW 9 (Impuls and momentum)
+        elif any(x in category for x in ["momentum", "impulse"]) or pid in ["176", "198", "209"]:
             folder_name = "HW 9 (Impuls and momentum)"
             image_filename = f"{pid}.png"
+        # Mapping for HW 8 (work and energy)
         elif any(x in category for x in ["work", "energy"]) or pid in ["141", "158", "161", "162"]:
             folder_name = "HW 8 (work and energy)"
             image_filename = f"{pid}.png"
@@ -54,17 +60,17 @@ def render_problem_diagram(prob):
             folder_name = f"{hw_title} ({hw_subtitle})"
             image_filename = f"{pid.split('_')[-1]}.png"
 
-    if folder_name:
-        img_path = os.path.join('images', folder_name, 'images', image_filename)
-        if os.path.exists(img_path):
-            try:
-                img = plt.imread(img_path)
-                ax.imshow(img)
-                h, w = img.shape[:2]
-                ax.set_xlim(0, w); ax.set_ylim(h, 0)
-                found = True
-            except Exception:
-                pass
+        if folder_name:
+            img_path = os.path.join('images', folder_name, 'images', image_filename)
+            if os.path.exists(img_path):
+                try:
+                    img = plt.imread(img_path)
+                    ax.imshow(img)
+                    h, w = img.shape[:2]
+                    ax.set_xlim(0, w); ax.set_ylim(h, 0)
+                    found = True
+                except Exception:
+                    pass
 
     if not found:
         ax.text(0.5, 0.5, f"Diagram Not Found\nID: {pid}", color='red', ha='center', va='center')
