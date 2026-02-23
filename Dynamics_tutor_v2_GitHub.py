@@ -108,7 +108,7 @@ if st.session_state.page == "landing":
         elif "impulse" in low_cat or "momentum" in low_cat:
             cat_main = "05_Impulse and Momentum"
         elif "impact" in low_cat:
-            cat_main = "06_Impact"  # Created sub-menu for Impact problems
+            cat_main = "06_Impact"
         else:
             cat_main = clean_cat
             
@@ -225,3 +225,18 @@ elif st.session_state.page == "chat":
         if st.button("🏠 Exit to Home", use_container_width=True):
             st.session_state.page = "landing"
             st.rerun()
+
+# --- Page 3: Mastery Report View ---
+elif st.session_state.page == "report_view":
+    st.title("📊 Session Mastery Report")
+    st.info(f"Summary for {st.session_state.user_name}")
+    
+    if "last_report" in st.session_state:
+        st.markdown(st.session_state.last_report)
+    else:
+        st.warning("No report data found.")
+        
+    st.markdown("---")
+    if st.button("🏠 Return to Main Menu", use_container_width=True):
+        st.session_state.page = "landing"
+        st.rerun()
