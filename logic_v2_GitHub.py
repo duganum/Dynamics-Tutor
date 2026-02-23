@@ -20,17 +20,56 @@ def get_gemini_model(system_instruction):
         return None
 
 def load_problems():
-    """저장소의 JSON 파일에서 문제 목록을 불러옵니다."""
+    """저장소의 JSON 파일에서 문제 목록을 불러오고 새 문제를 병합합니다."""
+    # New problems to be integrated
+    new_problems = [
+        {
+            "id": "176",
+            "category": "Impulse and Momentum",
+            "statement": "A 75-g projectile traveling at 600 m/s strikes and becomes embedded in the 50-kg block, which is initially stationary. Compute the energy lost during the impact. Express your answer as an absolute value |ΔE| and as a percentage n of the original system energy E.",
+            "targets": { "|ΔE|": 13480, "n": 99.85 },
+            "required_units": ["J", "%"]
+        },
+        {
+            "id": "198",
+            "category": "Impulse and Momentum",
+            "statement": "The 450-kg ram of a pile driver falls 1.4 m from rest and strikes the top of a 240-kg pile embedded 0.9 m in the ground. Upon impact the ram is seen to move with the pile with no noticeable rebound. Determine the velocity v of the pile and ram immediately after impact.",
+            "targets": { "v": 3.42 },
+            "required_units": ["m/s"]
+        },
+        {
+            "id": "209",
+            "category": "Work and Energy / Momentum",
+            "statement": "The cylindrical plug A of mass m_A is released from rest at B and slides down the smooth circular guide. The plug strikes the block C and becomes embedded in it. Write the expression for the distance s which the block and plug slide before coming to rest. The coefficient of kinetic friction between the block and the horizontal surface is μ_k.",
+            "targets": { "s": "m_A^2 * r / (μ_k * (m_A + m_C)^2)" },
+            "required_units": ["m"]
+        }
+    ]
+
     try:
         with open('problems_v2_GitHub.json', 'r') as f:
-            return json.load(f)
+            problems = json.load(f)
+            
+        # Merge logic: Add new problems if they don't already exist by ID
+        existing_ids = {p['id'] for p in problems}
+        for np in new_problems:
+            if np['id'] not in existing_ids:
+                problems.append(np)
+        return problems
     except Exception as e:
-        st.error(f"problems.json 로드 에러: {e}")
-        return []
+        # If file doesn't exist yet, just return the new problems
+        return new_problems
 
 def check_numeric_match(user_val, correct_val, tolerance=0.05):
     """숫자를 추출하여 정답과 5% 오차 범위 내에 있는지 확인합니다."""
     try:
+        # If correct_val is a string (like the expression in prob 209), skip numeric check
+        if isinstance(correct_val, str):
+            # Basic string cleanup for expression matching
+            u_clean = str(user_val).replace(" ", "").lower()
+            c_clean = str(correct_val).replace(" ", "").lower()
+            return c_clean in u_clean
+
         u_match = re.search(r"[-+]?\d*\.\d+|\d+", str(user_val))
         if not u_match: return False
         u = float(u_match.group())
@@ -40,33 +79,25 @@ def check_numeric_match(user_val, correct_val, tolerance=0.05):
     except (ValueError, TypeError, AttributeError):
         return False
 
-# --- NEW: UI Metadata Helper ---
 def get_footer_info(prob):
     """Extracts title and subtitle for the bottom UI line."""
     title = prob.get("hw_title")
     subtitle = prob.get("hw_subtitle")
     if title and subtitle:
         return f"{title} ({subtitle})"
-    # Fallback to category if HW metadata is missing
     return prob.get("category", "Engineering Practice")
 
 def evaluate_understanding_score(chat_history):
-    """
-    강의 세션 대화 내용을 바탕으로 이해도를 0-10점으로 평가합니다.
-    수식 사용 및 LaTeX 포맷 준수 여부에 따라 엄격하게 채점합니다.
-    """
+    """대화 내용을 바탕으로 이해도를 0-10점으로 평가합니다."""
     eval_instruction = (
         "You are a strict Engineering Professor at Texas A&M University - Corpus Christi. "
         "Evaluate the student's level of understanding (0-10) based ONLY on the chat history.\n\n"
         "STRICT SCORING RUBRIC:\n"
-        "0-3: Little participation, irrelevant answers, or purely non-technical chat.\n"
-        "4-5: Good engagement and conceptual talk, but lacks governing equations or proper LaTeX notation.\n"
-        "6-8: Demonstrates understanding by correctly identifying and using relevant equations in LaTeX (e.g., $a_x = 0$, $a_y = -g$).\n"
-        "9-10: Complete mastery. Correctly applies complex kinematic/dynamic equations and explains the physics logic flawlessly.\n\n"
-        "CRITICAL RULES:\n"
-        "1. If the student does not provide or correctly explain the specific GOVERNING EQUATIONS, do NOT exceed 5.\n"
-        "2. If the student uses sloppy notation (like 'ax' or 'a_x') instead of LaTeX ($a_x$), penalize the score.\n"
-        "3. Output ONLY the integer."
+        "0-3: Little participation, irrelevant answers.\n"
+        "4-5: Good engagement but lacks governing equations or proper LaTeX.\n"
+        "6-8: Correctly identifying and using relevant equations in LaTeX.\n"
+        "9-10: Complete mastery with flawless physics logic.\n\n"
+        "Output ONLY the integer."
     )
     
     model = get_gemini_model(eval_instruction)
@@ -83,19 +114,12 @@ def evaluate_understanding_score(chat_history):
         return 0
 
 def analyze_and_send_report(user_name, topic_title, chat_history):
-    """세션을 분석하여 Dr. Um에게 이메일 리포트를 전송합니다. LaTeX 가독성을 확인합니다."""
-    
+    """세션을 분석하여 이메일 리포트를 전송합니다."""
     score = evaluate_understanding_score(chat_history)
     
     report_instruction = (
         "You are an academic evaluator. Analyze this engineering session.\n"
-        "Your report must include:\n"
-        "1. Session Overview\n"
-        f"2. Numerical Understanding Score: {score}/10\n"
-        "3. Mathematical Rigor: Did the student use proper LaTeX and governing equations?\n"
-        "4. Concept Mastery: Strengths and gaps in understanding.\n"
-        "5. Engagement Level\n"
-        "6. CRITICAL: Quote the section '--- STUDENT FEEDBACK ---' exactly."
+        "Your report must include: Overview, Score, Mathematical Rigor, Concept Mastery, Engagement, and Student Feedback quote."
     )
     
     model = get_gemini_model(report_instruction)
@@ -106,7 +130,7 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
         f"Topic: {topic_title}\n"
         f"Assigned Score: {score}/10\n\n"
         f"DATA:\n{chat_history}\n\n"
-        "Format the report professionally for Dr. Dugan Um. Ensure all math in the report uses LaTeX."
+        "Format the report professionally for Dr. Dugan Um. Use LaTeX for math."
     )
     
     try:
@@ -116,17 +140,17 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
         report_text = f"Analysis failed: {str(e)}"
 
     # Email Logic
-    sender = st.secrets["EMAIL_SENDER"]
-    password = st.secrets["EMAIL_PASSWORD"] 
-    receiver = "dugan.um@gmail.com" 
-
-    msg = MIMEMultipart()
-    msg['From'] = sender
-    msg['To'] = receiver
-    msg['Subject'] = f"Eng. Tutor ({user_name}): {topic_title} [Score: {score}/10]"
-    msg.attach(MIMEText(report_text, 'plain'))
-
     try:
+        sender = st.secrets["EMAIL_SENDER"]
+        password = st.secrets["EMAIL_PASSWORD"] 
+        receiver = "dugan.um@gmail.com" 
+
+        msg = MIMEMultipart()
+        msg['From'] = sender
+        msg['To'] = receiver
+        msg['Subject'] = f"Eng. Tutor ({user_name}): {topic_title} [Score: {score}/10]"
+        msg.attach(MIMEText(report_text, 'plain'))
+
         server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
         server.login(sender, password)
         server.send_message(msg)
