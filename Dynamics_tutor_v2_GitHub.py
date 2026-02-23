@@ -105,7 +105,7 @@ if st.session_state.page == "landing":
             cat_main = "03_Kinetics of Particles (Rectilinear)"
         elif "work" in low_cat or "energy" in low_cat:
             cat_main = "04_Work and Energy"  # Set to 04 so it comes before Impulse
-        elif "impulse" in low_cat or "momentum" in low_cat:
+        elif "impulse" in low_cat or "momentum" in low_cat or "impact" in low_cat:
             cat_main = "05_Impulse and Momentum" # Set to 05 so it follows Work and Energy
         else:
             cat_main = clean_cat
