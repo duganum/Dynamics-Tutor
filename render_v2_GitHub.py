@@ -122,7 +122,8 @@ def render_problem_diagram(prob):
         
         folder_name = None
         
-        if "work" in category or "energy" in category or pid in ["141", "158", "161", "162"]:
+        # Mapping for the new problem sets and existing HW 8
+        if "work" in category or "energy" in category or "momentum" in category or pid in ["141", "158", "161", "162", "176", "198", "209"]:
             folder_name = "HW 8 (work and energy)"
             image_filename = f"{pid}.png"
         elif hw_title and hw_subtitle:
@@ -144,6 +145,7 @@ def render_problem_diagram(prob):
             except Exception:
                 pass
         
+        # Final fallback to root images folder
         if not found:
             clean_name = pid.replace("_", "").replace(".", "").lower()
             img_path_alt = os.path.join('images', f'{clean_name}.png')
