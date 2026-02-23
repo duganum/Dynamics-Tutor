@@ -94,6 +94,7 @@ if st.session_state.page == "landing":
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         low_cat = clean_cat.lower()
         
+        # Category Mapping Logic
         if "statics" in low_cat:
             cat_main = "00_Statics"
         elif "kinematics" in low_cat and "particle" not in low_cat:
@@ -102,6 +103,8 @@ if st.session_state.page == "landing":
             cat_main = "02_Kinetics of Particles (Curvilinear)"
         elif "rectilinear" in low_cat:
             cat_main = "03_Kinetics of Particles (Rectilinear)"
+        elif "impulse" in low_cat or "momentum" in low_cat:
+            cat_main = "04_Impulse and Momentum"
         elif "work" in low_cat or "energy" in low_cat:
             cat_main = "zzz_Work and Energy"  
         else:
@@ -121,7 +124,11 @@ if st.session_state.page == "landing":
             for j in range(3):
                 if i + j < len(probs):
                     prob = probs[i + j]
+                    # Label priority: hw_subtitle -> category suffix -> ID
                     sub_label = prob["hw_subtitle"].capitalize() if "hw_subtitle" in prob else prob.get('category', '').split(":")[-1].strip()
+                    if sub_label == display_name or not sub_label:
+                        sub_label = f"Problem {prob['id']}"
+                        
                     with cols[j]:
                         if st.button(f"**{sub_label}**\n({prob['id']})", key=f"btn_{prob['id']}", use_container_width=True):
                             st.session_state.current_prob = prob
@@ -143,27 +150,21 @@ elif st.session_state.page == "chat":
     with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        st.image(render_problem_diagram(prob), width=350)
+        # The render function will now handle IDs 176, 198, 209 via your assets
+        st.image(render_problem_diagram(prob), width=450)
     
     with top_cols[1]:
         st.subheader("💬 Socratic Tutor")
-        chat_container = st.container(height=400)
+        chat_container = st.container(height=450)
         
-        # Ensure model is initialized
         if p_id not in st.session_state.chat_sessions:
             sys_prompt = (
                 f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
                 f"REFERENCE DATA: {prob['statement']}. "
                 "### CORE INSTRUCTIONS:\n"
                 "1. LITERAL INTERPRETATION: Use the provided REFERENCE DATA as the absolute source of truth. "
-                "If the problem specifies a coordinate system, angle reference (e.g., from vertical), "
-                "or specific constant (e.g., gravity, friction), do not 'correct' it to standard conventions.\n"
-                "2. GEOMETRY VALIDATION: Before questioning a student's trig functions (sin/cos), "
-                "re-verify the angle's reference point in the REFERENCE DATA. If the student matches "
-                "the problem's specific geometry, confirm they are correct.\n"
-                "3. SOCRATIC METHOD: Never provide direct answers. Guide them with leading questions "
-                "based strictly on the physics of the provided problem.\n"
-                "4. MATH: Render all formulas in LaTeX."
+                "2. SOCRATIC METHOD: Never provide direct answers. Guide them with leading questions.\n"
+                "3. MATH: Render all formulas in LaTeX using $ symbols."
             )
             try:
                 model = get_gemini_model(sys_prompt)
@@ -178,24 +179,23 @@ elif st.session_state.page == "chat":
                         st.markdown(message.parts[0].text)
 
                 if not st.session_state.chat_sessions[p_id].history:
-                    st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. Please describe your first step.")
+                    st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. How should we begin analyzing this {prob.get('category', 'problem')}?")
 
         if user_input := st.chat_input("Your analysis..."):
             # Grading check logic
             for target, val in prob['targets'].items():
                 if target not in solved and check_numeric_match(user_input, val):
                     st.session_state.grading_data[p_id]['solved'].add(target)
+                    st.toast(f"✅ Correct value identified for {target}!", icon="🎯")
             
-            # API Communication logic
             if p_id in st.session_state.chat_sessions:
                 try:
                     with st.spinner("Tutor is thinking..."):
                         st.session_state.chat_sessions[p_id].send_message(user_input)
-                    st.rerun()  # Only rerun on success
+                    st.rerun() 
                 except exceptions.ResourceExhausted:
                     st.error("⚠️ System limit reached. Please wait 60 seconds.")
                 except Exception as e:
-                    # Provide the real error so you can see what's actually happening
                     st.error(f"Tutor Error: {e}")
 
     st.markdown("---")
@@ -203,7 +203,7 @@ elif st.session_state.page == "chat":
     
     with bot_col1:
         st.markdown("### 📝 Session Analysis")
-        feedback = st.text_area("Notes for Dr. Um:", placeholder="Please provide feedback.", height=100)
+        feedback = st.text_area("Notes for Dr. Um:", placeholder="What was challenging about this problem?", height=100)
         
     with bot_col2:
         st.write("Click below to finalize this session.")
@@ -227,3 +227,4 @@ elif st.session_state.page == "chat":
             st.session_state.page = "landing"
             st.rerun()
 
+# Note: "report_view" and "lecture" pages would follow the same logic as previous versions.
