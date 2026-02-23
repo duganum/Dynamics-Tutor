@@ -94,7 +94,7 @@ if st.session_state.page == "landing":
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         low_cat = clean_cat.lower()
         
-        # Category Mapping Logic
+        # Revised Category Mapping Logic for Ordering
         if "statics" in low_cat:
             cat_main = "00_Statics"
         elif "kinematics" in low_cat and "particle" not in low_cat:
@@ -103,10 +103,10 @@ if st.session_state.page == "landing":
             cat_main = "02_Kinetics of Particles (Curvilinear)"
         elif "rectilinear" in low_cat:
             cat_main = "03_Kinetics of Particles (Rectilinear)"
-        elif "impulse" in low_cat or "momentum" in low_cat:
-            cat_main = "04_Impulse and Momentum"
         elif "work" in low_cat or "energy" in low_cat:
-            cat_main = "zzz_Work and Energy"  
+            cat_main = "04_Work and Energy"  # Set to 04 so it comes before Impulse
+        elif "impulse" in low_cat or "momentum" in low_cat:
+            cat_main = "05_Impulse and Momentum" # Set to 05 so it follows Work and Energy
         else:
             cat_main = clean_cat
             
@@ -124,7 +124,6 @@ if st.session_state.page == "landing":
             for j in range(3):
                 if i + j < len(probs):
                     prob = probs[i + j]
-                    # Label priority: hw_subtitle -> category suffix -> ID
                     sub_label = prob["hw_subtitle"].capitalize() if "hw_subtitle" in prob else prob.get('category', '').split(":")[-1].strip()
                     if sub_label == display_name or not sub_label:
                         sub_label = f"Problem {prob['id']}"
@@ -150,7 +149,6 @@ elif st.session_state.page == "chat":
     with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
-        # The render function will now handle IDs 176, 198, 209 via your assets
         st.image(render_problem_diagram(prob), width=450)
     
     with top_cols[1]:
@@ -182,7 +180,6 @@ elif st.session_state.page == "chat":
                     st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. How should we begin analyzing this {prob.get('category', 'problem')}?")
 
         if user_input := st.chat_input("Your analysis..."):
-            # Grading check logic
             for target, val in prob['targets'].items():
                 if target not in solved and check_numeric_match(user_input, val):
                     st.session_state.grading_data[p_id]['solved'].add(target)
@@ -226,5 +223,3 @@ elif st.session_state.page == "chat":
         if st.button("🏠 Exit to Home", use_container_width=True):
             st.session_state.page = "landing"
             st.rerun()
-
-# Note: "report_view" and "lecture" pages would follow the same logic as previous versions.
