@@ -198,7 +198,7 @@ elif st.session_state.page == "report_view":
         st.session_state.page = "landing"
         st.rerun()
 
-# --- Page 4: Interactive Lecture ---
+# --- Page 4: Interactive Lecture (FIXED: Improved matching logic) ---
 elif st.session_state.page == "lecture":
     st.title(f"🎓 Interactive Lecture: {st.session_state.lecture_topic}")
     
@@ -207,18 +207,20 @@ elif st.session_state.page == "lecture":
     with col1:
         st.subheader("⚙️ Simulation Controls")
         
+        topic_clean = st.session_state.lecture_topic.lower().strip()
         params = {}
-        if st.session_state.lecture_topic == "Projectile Motion":
+        
+        if "projectile" in topic_clean:
             v0 = st.slider("Initial Velocity ($v_0$)", 1.0, 50.0, 20.0, step=1.0)
             angle = st.slider("Launch Angle (θ)", 0, 90, 45, step=5)
             gravity = st.slider("Gravity ($g$)", 1.0, 20.0, 9.81, step=0.1)
             params = {"v0": v0, "angle": angle, "g": gravity}
-        elif st.session_state.lecture_topic == "Relative Motion":
+        elif "relative" in topic_clean:
             va = st.slider("Velocity A ($v_A$)", -30.0, 30.0, 10.0)
             vb = st.slider("Velocity B ($v_B$)", -30.0, 30.0, -15.0)
             params = {"vA": va, "vB": vb}
         else:
-            st.info("Interactive knobs for this topic are under development.")
+            st.info(f"Interactive knobs for '{st.session_state.lecture_topic}' are under development.")
 
         st.markdown("### 📈 Visual Overview")
         st.image(render_lecture_visual(st.session_state.lecture_topic, params), use_container_width=True)
