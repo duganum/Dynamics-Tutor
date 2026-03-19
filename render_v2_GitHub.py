@@ -7,7 +7,7 @@ import re
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    FIXED: Removed stray commas and syntax errors.
+    FIXED: Optimized search for HW 7-67 and numeric extraction.
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -19,8 +19,8 @@ def render_problem_diagram(prob):
     ax.set_aspect('equal')
     found = False
 
-    # --- 1. Procedural Statics Diagrams (S_1.1 to S_1.4) ---
-    if pid.startswith("S_1.1"):
+    # --- 1. Procedural Statics Diagrams ---
+    if pid.startswith("S_1"):
         if pid == "S_1.1_1":
             ax.plot(0, 0, 'ko', markersize=8)
             ax.annotate('', xy=(-1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='blue'))
@@ -28,52 +28,28 @@ def render_problem_diagram(prob):
             ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red'))
             ax.set_xlim(-2, 2); ax.set_ylim(-2, 2)
             found = True
-        elif pid == "S_1.1_2":
-            theta = np.radians(30)
-            ax.plot([-2, 2], [2*np.tan(-theta), -2*np.tan(-theta)], 'k-', lw=2) 
-            ax.add_patch(plt.Circle((0, 0.5), 0.5, color='gray', alpha=0.5)) 
-            ax.set_xlim(-2, 2); ax.set_ylim(-1, 2)
-            found = True
-        elif pid == "S_1.1_3":
-            ax.plot([0, 3], [0, 0], 'brown', lw=6); ax.plot(0, 0, 'k^', markersize=10) 
-            ax.set_xlim(-0.5, 4); ax.set_ylim(-1, 3)
-            found = True
-
-    elif pid.startswith("S_1.2"):
-        if pid == "S_1.2_1":
+        elif pid == "S_1.2_1":
             pts = np.array([[0,0], [2,1], [4,0], [2,0], [0,0]])
             ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([2,2], [0,1], 'k-', lw=2)
-            ax.annotate('', xy=(2, -1), xytext=(2, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-            ax.set_xlim(-0.5, 4.5); ax.set_ylim(-1.5, 2)
             found = True
-        elif pid == "S_1.2_2":
-            pts = np.array([[0,0], [1, 1.73], [2,0], [0,0]])
-            ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2)
-            ax.annotate('', xy=(1, 0.73), xytext=(1, 1.73), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-            ax.set_xlim(-0.5, 2.5); ax.set_ylim(-0.5, 2.5)
-            found = True
-
-    elif pid.startswith("S_1.4"):
-        if pid == "S_1.4_1":
-            ax.plot([0, 3], [0, 0], color='gray', lw=8)
-            ax.plot([0, 0], [-1, 1], color='black', lw=4)
-            ax.annotate('', xy=(3, -1), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-            ax.set_xlim(-0.5, 4); ax.set_ylim(-1.5, 1.5)
+        elif pid == "S_1.4_1":
+            ax.plot([0, 3], [0, 0], color='gray', lw=8); ax.plot([0, 0], [-1, 1], color='black', lw=4)
             found = True
         elif pid == "S_1.4_2":
             ax.plot([0, 6], [0, 0], color='brown', lw=10)
-            ax.plot(0, -0.2, 'k^', markersize=15)
-            ax.plot(4, -0.2, 'k^', markersize=15)
-            ax.annotate('', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-            ax.set_xlim(-1, 7); ax.set_ylim(-2, 1)
             found = True
 
     # --- 2. Dynamics Image Loader ---
     if not found:
         category = str(prob.get("category", "")).lower()
-        clean_pid = pid.replace("_", "").replace(".", "").lower()
+        # Clean ID for root search (e.g., K_2.5_1 -> k251)
+        clean_pid = pid.replace("_", "").replace(".", "").replace("-", "").lower()
         image_filename = f"{clean_pid}.png"
         folder_name = None
+
+        # Determine Folder and Numeric Filename (e.g., HW 7-67 -> 67.png)
+        match = re.search(r'(\d+)$', pid)
+        num_only = match.group(1) if match else None
 
         if "rotation" in category or "rigid" in category or pid.startswith("K_2.6"):
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
@@ -82,12 +58,10 @@ def render_problem_diagram(prob):
             elif pid.endswith("_3"): image_filename = "16.png"
         elif "curvilinear" in category or "hw7" in clean_pid:
             folder_name = "HW 7 (kinetics of particles-curvilinear motion)"
-            match = re.search(r'(\d+)$', pid)
-            if match: image_filename = f"{match.group(1)}.png"
+            if num_only: image_filename = f"{num_only}.png"
         elif "rectilinear" in category or "hw6" in clean_pid:
             folder_name = "HW 6 (kinetics of particles-rectilinear motion)"
-            match = re.search(r'(\d+)$', pid)
-            if match: image_filename = f"{match.group(1)}.png"
+            if num_only: image_filename = f"{num_only}.png"
         elif "impact" in category:
             folder_name = "HW 10 (Impact)"
         elif "momentum" in category or "impulse" in category:
@@ -95,14 +69,16 @@ def render_problem_diagram(prob):
         elif "work" in category or "energy" in category:
             folder_name = "HW 8 (work and energy)"
 
+        # SEARCH MULTIPLE PATHS
         paths_to_try = []
         if folder_name:
             paths_to_try.append(os.path.join('images', folder_name, 'images', image_filename))
             paths_to_try.append(os.path.join('images', folder_name, image_filename))
         
-        # Universal fallback for root images
+        # Always try root as fallback
         paths_to_try.append(os.path.join('images', image_filename))
-        
+        paths_to_try.append(os.path.join('images', f"{pid}.png")) # Literal ID check
+
         for img_path in paths_to_try:
             if os.path.exists(img_path):
                 try:
@@ -115,7 +91,7 @@ def render_problem_diagram(prob):
                 except: continue
 
     if not found:
-        ax.text(0.5, 0.5, f"Diagram Not Found\nID: {pid}", color='red', ha='center', va='center', fontsize=8)
+        ax.text(0.5, 0.5, f"Diagram Not Found\nID: {pid}\nSearching: {image_filename}", color='red', ha='center', va='center', fontsize=8)
         ax.set_xlim(0, 1); ax.set_ylim(0, 1)
 
     ax.axis('off')
