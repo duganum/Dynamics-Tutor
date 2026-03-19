@@ -99,18 +99,19 @@ if st.session_state.page == "landing":
             cat_main = "00_Statics"
         elif "kinematics" in low_cat and "particle" in low_cat:
             cat_main = "01_Particle Kinematics"
-        elif "curvilinear" in low_cat:
-            cat_main = "02_Kinetics of Particles (Curvilinear)"
-        elif "rectilinear" in low_cat:
-            cat_main = "03_Kinetics of Particles (Rectilinear)"
-        elif "work" in low_cat or "energy" in low_cat:
-            cat_main = "04_Work and Energy"
-        elif "impulse" in low_cat or "momentum" in low_cat:
-            cat_main = "05_Impulse and Momentum"
-        elif "impact" in low_cat:
-            cat_main = "06_Impact"
+        # Rotation follows Particle Kinematics directly
         elif "rotation" in low_cat or "rigid" in low_cat:
-            cat_main = "07_Rigid Body Kinematics"
+            cat_main = "02_Rigid Body Kinematics"
+        elif "curvilinear" in low_cat:
+            cat_main = "03_Kinetics of Particles (Curvilinear)"
+        elif "rectilinear" in low_cat:
+            cat_main = "04_Kinetics of Particles (Rectilinear)"
+        elif "work" in low_cat or "energy" in low_cat:
+            cat_main = "05_Work and Energy"
+        elif "impulse" in low_cat or "momentum" in low_cat:
+            cat_main = "06_Impulse and Momentum"
+        elif "impact" in low_cat:
+            cat_main = "07_Impact"
         else:
             cat_main = clean_cat
             
