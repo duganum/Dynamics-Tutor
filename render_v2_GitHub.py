@@ -6,7 +6,7 @@ import io
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    Maps HW 11 specific IDs to correct filenames.
+    Maps HW 11 specific IDs (K_2.6_x) to correct filenames (71, 6, 16).
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -96,12 +96,13 @@ def render_problem_diagram(prob):
         image_filename = f"{pid}.png"
         folder_name = None
 
-        # Routing to specific HW folders with manual ID-to-image mapping
+        # ROUTING LOGIC: Specific HW Folders
+        # Fixed mapping for Rigid Body Kinematics (Rotation)
         if "rotation" in category or "rigid" in category or pid.startswith("K_2.6"):
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
-            if "1" in pid: image_filename = "71.png"
-            elif "2" in pid: image_filename = "6.png"
-            elif "3" in pid: image_filename = "16.png"
+            if "_1" in pid: image_filename = "71.png"
+            elif "_2" in pid: image_filename = "6.png"
+            elif "_3" in pid: image_filename = "16.png"
         elif "impact" in category or pid in ["239", "249", "252"]:
             folder_name = "HW 10 (Impact)"
         elif "momentum" in category or "impulse" in category or pid in ["176", "198", "209"]:
@@ -113,7 +114,6 @@ def render_problem_diagram(prob):
             image_filename = f"{pid.split('_')[-1]}.png"
 
         if folder_name:
-            # Construct the path specifically for your repo structure
             img_path = os.path.join('images', folder_name, 'images', image_filename)
             if os.path.exists(img_path):
                 try:
