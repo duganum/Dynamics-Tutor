@@ -6,7 +6,7 @@ import io
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    Supports nested paths and specific HW 11 Rigid Body directory.
+    Maps HW 11 specific IDs to correct filenames.
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -91,10 +91,12 @@ def render_problem_diagram(prob):
     # --- 2. HW Directory Image Loader ---
     if not found:
         category = str(prob.get("category", "")).lower()
+        hw_title = prob.get("hw_title")
+        hw_subtitle = prob.get("hw_subtitle")
         image_filename = f"{pid}.png"
         folder_name = None
 
-        # Routing to specific HW folders
+        # Routing to specific HW folders with manual ID-to-image mapping
         if "rotation" in category or "rigid" in category or pid.startswith("K_2.6"):
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
             if "1" in pid: image_filename = "71.png"
@@ -106,12 +108,12 @@ def render_problem_diagram(prob):
             folder_name = "HW 9 (Impuls and momentum)"
         elif "work" in category or "energy" in category or pid in ["158", "161", "162"]:
             folder_name = "HW 8 (work and energy)"
-        elif prob.get("hw_title") and prob.get("hw_subtitle"):
-            folder_name = f"{prob['hw_title']} ({prob['hw_subtitle']})"
+        elif hw_title and hw_subtitle:
+            folder_name = f"{hw_title} ({hw_subtitle})"
             image_filename = f"{pid.split('_')[-1]}.png"
 
         if folder_name:
-            # Check the nested 'images' subfolder path used in your repo
+            # Construct the path specifically for your repo structure
             img_path = os.path.join('images', folder_name, 'images', image_filename)
             if os.path.exists(img_path):
                 try:
@@ -138,7 +140,12 @@ def render_lecture_visual(topic, params=None):
     fig, ax = plt.subplots(figsize=(6, 6), dpi=150)
     ax.axhline(0, color='black', lw=1.5); ax.axvline(0, color='black', lw=1.5)
     ax.grid(True, linestyle=':', alpha=0.6); ax.set_aspect('equal')
-    # ... lecture logic (omitted for brevity)
+    
+    if topic == "Relative Motion" and params:
+        vA, vB = params.get('vA', [15, 5]), params.get('vB', [10, -5])
+        ax.quiver(0, 0, vA[0], vA[1], color='blue', angles='xy', scale_units='xy', scale=1, label='vA')
+        ax.quiver(0, 0, vB[0], vB[1], color='red', angles='xy', scale_units='xy', scale=1, label='vB')
+    
     buf = io.BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
