@@ -94,7 +94,7 @@ if st.session_state.page == "landing":
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         low_cat = clean_cat.lower()
         
-        # Mapping Logic - Reordered and Renamed per request
+        # Mapping Logic
         if "statics" in low_cat:
             cat_main = "00_Statics"
         elif "kinematics" in low_cat and "rigid" not in low_cat and "rotation" not in low_cat:
@@ -120,7 +120,6 @@ if st.session_state.page == "landing":
     sorted_cat_keys = sorted(categories.keys())
     for cat_key in sorted_cat_keys:
         probs = categories[cat_key]
-        # Clean up the prefix for display
         display_name = re.sub(r'^[0-9]+_', '', cat_key) 
         
         st.markdown(f"#### {display_name}")
@@ -150,7 +149,6 @@ elif st.session_state.page == "chat":
     solved = st.session_state.grading_data[p_id]['solved']
     
     top_cols = st.columns([1, 1])
-    
     with top_cols[0]:
         st.subheader(f"📌 {prob['category']}")
         st.info(prob['statement'])
@@ -163,11 +161,7 @@ elif st.session_state.page == "chat":
         if p_id not in st.session_state.chat_sessions:
             sys_prompt = (
                 f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
-                f"REFERENCE DATA: {prob['statement']}. "
-                "### CORE INSTRUCTIONS:\n"
-                "1. LITERAL INTERPRETATION: Use the provided REFERENCE DATA as the absolute source of truth. "
-                "2. SOCRATIC METHOD: Never provide direct answers. Guide them with leading questions.\n"
-                "3. MATH: Render all formulas in LaTeX using $ symbols."
+                f"REFERENCE DATA: {prob['statement']}. Guide using Socratic questions."
             )
             try:
                 model = get_gemini_model(sys_prompt)
@@ -181,65 +175,58 @@ elif st.session_state.page == "chat":
                     with st.chat_message("assistant" if message.role == "model" else "user"):
                         st.markdown(message.parts[0].text)
 
-                if not st.session_state.chat_sessions[p_id].history:
-                    st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. How should we begin analyzing this {prob.get('category', 'problem')}?")
-
         if user_input := st.chat_input("Your analysis..."):
             for target, val in prob['targets'].items():
                 if target not in solved and check_numeric_match(user_input, val):
                     st.session_state.grading_data[p_id]['solved'].add(target)
-                    st.toast(f"✅ Correct value identified for {target}!", icon="🎯")
+                    st.toast(f"✅ Correct!", icon="🎯")
             
             if p_id in st.session_state.chat_sessions:
-                try:
-                    with st.spinner("Tutor is thinking..."):
-                        st.session_state.chat_sessions[p_id].send_message(user_input)
-                    st.rerun() 
-                except exceptions.ResourceExhausted:
-                    st.error("⚠️ System limit reached. Please wait 60 seconds.")
-                except Exception as e:
-                    st.error(f"Tutor Error: {e}")
+                st.session_state.chat_sessions[p_id].send_message(user_input)
+                st.rerun()
 
-    st.markdown("---")
-    bot_col1, bot_col2 = st.columns([2, 1])
-    
-    with bot_col1:
-        st.markdown("### 📝 Session Analysis")
-        feedback = st.text_area("Notes for Dr. Um:", placeholder="What was challenging about this problem?", height=100)
-        
-    with bot_col2:
-        st.write("Click below to finalize this session.")
-        if st.button("🚀 Submit Session", use_container_width=True):
-            history_text = ""
-            if p_id in st.session_state.chat_sessions:
-                for msg in st.session_state.chat_sessions[p_id].history:
-                    role = "Tutor" if msg.role == "model" else "Student"
-                    history_text += f"{role}: {msg.parts[0].text}\n"
-            
-            try:
-                with st.spinner("Analyzing mastery..."):
-                    report = analyze_and_send_report(st.session_state.user_name, prob['category'], history_text + feedback)
-                    st.session_state.last_report = report
-                    st.session_state.page = "report_view"
-                    st.rerun()
-            except Exception as e:
-                st.error(f"Reporting Error: {e}")
-        
-        if st.button("🏠 Exit to Home", use_container_width=True):
-            st.session_state.page = "landing"
-            st.rerun()
+    if st.button("🏠 Exit to Home", use_container_width=True):
+        st.session_state.page = "landing"
+        st.rerun()
 
 # --- Page 3: Mastery Report View ---
 elif st.session_state.page == "report_view":
     st.title("📊 Session Mastery Report")
-    st.info(f"Summary for {st.session_state.user_name}")
-    
     if "last_report" in st.session_state:
         st.markdown(st.session_state.last_report)
-    else:
-        st.warning("No report data found.")
-        
-    st.markdown("---")
     if st.button("🏠 Return to Main Menu", use_container_width=True):
+        st.session_state.page = "landing"
+        st.rerun()
+
+# --- Page 4: Interactive Lecture (FIXED: Added this block) ---
+elif st.session_state.page == "lecture":
+    st.title(f"🎓 Interactive Lecture: {st.session_state.lecture_topic}")
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.subheader("Visual Overview")
+        st.image(render_lecture_visual(st.session_state.lecture_topic), use_container_width=True)
+        
+    with col2:
+        st.subheader("Socratic Discussion")
+        lecture_chat = st.container(height=500)
+        
+        if st.session_state.lecture_session is None:
+            lec_prompt = f"You are a Socratic Professor teaching {st.session_state.lecture_topic}. Start with a fundamental question."
+            model = get_gemini_model(lec_prompt)
+            st.session_state.lecture_session = model.start_chat(history=[])
+
+        with lecture_chat:
+            for message in st.session_state.lecture_session.history:
+                with st.chat_message("assistant" if message.role == "model" else "user"):
+                    st.markdown(message.parts[0].text)
+            if not st.session_state.lecture_session.history:
+                st.write(f"Welcome to the lecture on **{st.session_state.lecture_topic}**. Let's begin...")
+
+        if lec_input := st.chat_input("Discuss the topic..."):
+            st.session_state.lecture_session.send_message(lec_input)
+            st.rerun()
+
+    if st.button("🏠 Exit Lecture", use_container_width=True):
         st.session_state.page = "landing"
         st.rerun()
