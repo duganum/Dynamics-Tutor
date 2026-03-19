@@ -120,7 +120,11 @@ if st.session_state.page == "landing":
     sorted_cat_keys = sorted(categories.keys())
     for cat_key in sorted_cat_keys:
         probs = categories[cat_key]
-        display_name = re.sub(r'^[0-9a-z_]+_', '', cat_key) 
+        # Custom display name logic to rename Particle Kinematics
+        if cat_key == "01_Particle Kinematics":
+            display_name = "Particle Kinematics"
+        else:
+            display_name = re.sub(r'^[0-9a-z_]+_', '', cat_key) 
         
         st.markdown(f"#### {display_name}")
         for i in range(0, len(probs), 3):
