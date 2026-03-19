@@ -97,7 +97,7 @@ if st.session_state.page == "landing":
         # Revised Category Mapping Logic for Ordering
         if "statics" in low_cat:
             cat_main = "00_Statics"
-        elif "kinematics" in low_cat and "particle" not in low_cat:
+        elif "kinematics" in low_cat and "particle" in low_cat:
             cat_main = "01_Particle Kinematics"
         elif "curvilinear" in low_cat:
             cat_main = "02_Kinetics of Particles (Curvilinear)"
@@ -109,6 +109,8 @@ if st.session_state.page == "landing":
             cat_main = "05_Impulse and Momentum"
         elif "impact" in low_cat:
             cat_main = "06_Impact"
+        elif "rotation" in low_cat or "rigid" in low_cat:
+            cat_main = "07_Rigid Body Kinematics (Rotation)"
         else:
             cat_main = clean_cat
             
