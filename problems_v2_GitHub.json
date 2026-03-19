@@ -327,5 +327,26 @@
     "statement": "The rotating arm starts from rest and acquires a rotational speed $N = 600$ rev/min in $2$ seconds with constant angular acceleration. Find the time $t$ after starting before the acceleration vector of end $P$ (at radius $6''$) makes an angle of $45^{\\circ}$ with the arm $OP$.",
     "targets": { "t": 0.1784 },
     "required_units": ["s"]
+  },
+  {
+    "id": "K_2.7_60",
+    "category": "Rigid Body Kinematics (Relative Velocity)",
+    "statement": "The cart has a velocity of 4 ft/sec to the right. Determine the angular speed $N$ of the wheel ($r=10''$) so that point $A$ on the top of the rim has a velocity (a) equal to 4 ft/sec to the left, (b) equal to zero, and (c) equal to 8 ft/sec to the right.",
+    "targets": { "N_a": 91.7, "N_b": 45.8, "N_c": 45.8 },
+    "required_units": ["rpm"]
+  },
+  {
+    "id": "K_2.7_71",
+    "category": "Rigid Body Kinematics (Relative Velocity)",
+    "statement": "For the instant represented point $B$ crosses the horizontal axis through point $O$ with a downward velocity $v = 0.6$ m/s. Link $OA$ is 130 mm, link $AB$ is 90 mm, and the horizontal distance $OB$ is 180 mm. Determine the corresponding value of the angular velocity $\\omega_{OA}$ of link $OA$.",
+    "targets": { "omega_OA": 3.0 },
+    "required_units": ["rad/s"]
+  },
+  {
+    "id": "K_2.7_75",
+    "category": "Rigid Body Kinematics (Relative Velocity)",
+    "statement": "Each of the sliding bars $A$ and $B$ engages its respective rim of the two riveted wheels without slipping. Bar $A$ moves at $v_A = 0.8$ m/s to the right, and bar $B$ moves at $v_B = 0.6$ m/s to the left. Inner radius is 100 mm and outer radius is 160 mm. Determine the magnitude of the velocity of point $P$ for the position shown.",
+    "targets": { "v_P": 0.9 },
+    "required_units": ["m/s"]
   }
 ]
