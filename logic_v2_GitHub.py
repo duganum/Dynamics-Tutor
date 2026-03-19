@@ -160,8 +160,13 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
     score = evaluate_understanding_score(chat_history)
     
     report_instruction = (
-        "You are an academic evaluator. Analyze this engineering session.\n"
-        "Your report must include: Overview, Score, Mathematical Rigor, Concept Mastery, Engagement, and Student Feedback quote."
+        "You are an expert Engineering Education Evaluator for Dr. Dugan Um at TAMUCC. "
+        "Analyze the session data and generate a professional mastery report using Markdown.\n\n"
+        "STRICT FORMATTING RULES:\n"
+        "1. DO NOT use LaTeX document wrappers like \\documentclass or \\begin{document}.\n"
+        "2. Use standard Markdown headers (##, ###) and bold text (**).\n"
+        "3. Use LaTeX ONLY for individual formulas (e.g., $F=ma$).\n"
+        "4. REQUIRED SECTIONS: ## Overview, ## Score, ## Mathematical Rigor, ## Concept Mastery, ## Engagement, ## Recommendations."
     )
     
     model = get_gemini_model(report_instruction)
@@ -171,8 +176,8 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
         f"Student Name: {user_name}\n"
         f"Topic: {topic_title}\n"
         f"Assigned Score: {score}/10\n\n"
-        f"DATA:\n{chat_history}\n\n"
-        "Format the report professionally for Dr. Dugan Um. Use LaTeX for math."
+        f"SESSION CHAT HISTORY:\n{chat_history}\n\n"
+        "Write the evaluation in Markdown for a clean web display."
     )
     
     try:
