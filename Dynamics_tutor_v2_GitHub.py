@@ -109,8 +109,9 @@ if st.session_state.page == "landing":
             cat_main = "05_Impulse and Momentum"
         elif "impact" in low_cat:
             cat_main = "06_Impact"
+        # Added Rigid Body Kinematics category check
         elif "rotation" in low_cat or "rigid" in low_cat:
-            cat_main = "07_Rigid Body Kinematics (Rotation)"
+            cat_main = "07_Rigid Body Kinematics"
         else:
             cat_main = clean_cat
             
