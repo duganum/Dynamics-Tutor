@@ -6,7 +6,7 @@ import io
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    Maps HW 11 specific IDs (K_2.6_x) to correct filenames (71, 6, 16).
+    FIXED: Uses .endswith() for HW 11 to prevent "K_2" overlapping with ID "2".
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -91,26 +91,25 @@ def render_problem_diagram(prob):
     # --- 2. HW Directory Image Loader ---
     if not found:
         category = str(prob.get("category", "")).lower()
-        hw_title = prob.get("hw_title")
-        hw_subtitle = prob.get("hw_subtitle")
         image_filename = f"{pid}.png"
         folder_name = None
 
-        # ROUTING LOGIC: Specific HW Folders
-        # Fixed mapping for Rigid Body Kinematics (Rotation)
+        # ROUTING LOGIC: Specifically for Rigid Body / HW 11
         if "rotation" in category or "rigid" in category or pid.startswith("K_2.6"):
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
-            if "_1" in pid: image_filename = "71.png"
-            elif "_2" in pid: image_filename = "6.png"
-            elif "_3" in pid: image_filename = "16.png"
+            # FIXED: Matching by the end of the ID string to avoid "K_2" confusion
+            if pid.endswith("_1"): image_filename = "71.png"
+            elif pid.endswith("_2"): image_filename = "6.png"
+            elif pid.endswith("_3"): image_filename = "16.png"
+            
         elif "impact" in category or pid in ["239", "249", "252"]:
             folder_name = "HW 10 (Impact)"
         elif "momentum" in category or "impulse" in category or pid in ["176", "198", "209"]:
             folder_name = "HW 9 (Impuls and momentum)"
         elif "work" in category or "energy" in category or pid in ["158", "161", "162"]:
             folder_name = "HW 8 (work and energy)"
-        elif hw_title and hw_subtitle:
-            folder_name = f"{hw_title} ({hw_subtitle})"
+        elif prob.get("hw_title") and prob.get("hw_subtitle"):
+            folder_name = f"{prob['hw_title']} ({prob['hw_subtitle']})"
             image_filename = f"{pid.split('_')[-1]}.png"
 
         if folder_name:
@@ -136,16 +135,9 @@ def render_problem_diagram(prob):
     return buf
 
 def render_lecture_visual(topic, params=None):
-    """Visualizes derivation components."""
     fig, ax = plt.subplots(figsize=(6, 6), dpi=150)
     ax.axhline(0, color='black', lw=1.5); ax.axvline(0, color='black', lw=1.5)
     ax.grid(True, linestyle=':', alpha=0.6); ax.set_aspect('equal')
-    
-    if topic == "Relative Motion" and params:
-        vA, vB = params.get('vA', [15, 5]), params.get('vB', [10, -5])
-        ax.quiver(0, 0, vA[0], vA[1], color='blue', angles='xy', scale_units='xy', scale=1, label='vA')
-        ax.quiver(0, 0, vB[0], vB[1], color='red', angles='xy', scale_units='xy', scale=1, label='vB')
-    
     buf = io.BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
