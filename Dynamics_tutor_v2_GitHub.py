@@ -94,10 +94,11 @@ if st.session_state.page == "landing":
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         low_cat = clean_cat.lower()
         
-        # Revised Category Mapping Logic for requested Order
+        # Mapping Logic - Explicitly ordering to put Particle Kinematics below Statics 
+        # and Rigid Body Kinematics at the very bottom
         if "statics" in low_cat:
             cat_main = "00_Statics"
-        elif "kinematics" in low_cat and "particle" in low_cat:
+        elif "kinematics" in low_cat and "rigid" not in low_cat and "rotation" not in low_cat:
             cat_main = "01_Particle Kinematics"
         elif "curvilinear" in low_cat:
             cat_main = "02_Kinetics of Particles (Curvilinear)"
@@ -120,11 +121,8 @@ if st.session_state.page == "landing":
     sorted_cat_keys = sorted(categories.keys())
     for cat_key in sorted_cat_keys:
         probs = categories[cat_key]
-        # Custom display name logic to rename Particle Kinematics
-        if cat_key == "01_Particle Kinematics":
-            display_name = "Particle Kinematics"
-        else:
-            display_name = re.sub(r'^[0-9a-z_]+_', '', cat_key) 
+        # Clean up the prefix for display
+        display_name = re.sub(r'^[0-9]+_', '', cat_key) 
         
         st.markdown(f"#### {display_name}")
         for i in range(0, len(probs), 3):
