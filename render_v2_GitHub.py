@@ -124,7 +124,10 @@ def render_problem_diagram(prob):
         folder_name = None
         
         # Mapping for Homework Folders
-        if "K_2.6" in pid or "rotation" in category or "rigid" in category:
+        if "K_2.7" in pid or "relative velocity" in category:
+            folder_name = "HW 11-2 (kinematics of rigid body-relative velocity)"
+            image_filename = f"{pid.split('_')[-1]}.png"
+        elif "K_2.6" in pid or "rotation" in category or "rigid" in category:
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
             # Specific mappings for requested rigid body problems
             if "2.6_1" in pid:
@@ -146,7 +149,7 @@ def render_problem_diagram(prob):
             image_filename = f"{pid}.png"
         elif hw_title and hw_subtitle:
             if hw_title == "HW 7":
-                # Fixed spacing: Use double space before parenthesis if HW 7 folder follows that pattern
+                # Fixed spacing: Use double space before parenthesis
                 folder_name = f"HW 7  ({hw_subtitle})" 
             else:
                 folder_name = f"{hw_title} ({hw_subtitle})"
