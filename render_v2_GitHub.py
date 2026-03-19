@@ -7,7 +7,7 @@ import re
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    FIXED: Strict pathing for triple-nested /images/ structure in HW folders.
+    FIXED: Robust number extraction to prevent 'HW7' from being read as '7.png'.
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -37,14 +37,21 @@ def render_problem_diagram(prob):
     if not found:
         category = str(prob.get("category", "")).lower()
         
-        # Extract the number from the ID (e.g., "HW 7-67" -> "67")
-        # This matches your filenames like "67.png"
-        num_match = re.search(r'(\d+)', pid)
-        image_number = num_match.group(0) if num_match else pid
+        # FIXED: Extraction logic. 
+        # If ID is "HW7_67", this looks for the number AFTER the underscore/dash.
+        if "_" in pid:
+            image_number = pid.split("_")[-1]
+        elif "-" in pid:
+            image_number = pid.split("-")[-1]
+        else:
+            # Fallback to standard regex if no separator found
+            match = re.search(r'(\d+)$', pid)
+            image_number = match.group(1) if match else pid
+            
         image_filename = f"{image_number}.png"
-        
-        # Mapping to the exact folder names in your repository
         folder_name = None
+
+        # Mapping to the exact folder names in your repository
         if "curvilinear" in category or "hw 7" in pid.lower() or "hw7" in pid.lower():
             folder_name = "HW 7 (kinetics of particles-curvilinear motion)"
         elif "rectilinear" in category or "hw 6" in pid.lower() or "hw6" in pid.lower():
@@ -62,15 +69,13 @@ def render_problem_diagram(prob):
             elif pid.endswith("_2"): image_filename = "6.png"
             elif pid.endswith("_3"): image_filename = "16.png"
 
-        # List of paths to try, prioritizing the triple-nested /images/ subfolder
+        # List of paths to try (Triple-nested /images/ structure)
         paths_to_try = []
         if folder_name:
-            # The structure from your screenshot: images/[Folder]/images/[num].png
             paths_to_try.append(os.path.join('images', folder_name, 'images', image_filename))
-            # Fallback to single nest
             paths_to_try.append(os.path.join('images', folder_name, image_filename))
 
-        # Absolute fallback: images/[clean_id].png or images/[num].png in root
+        # Absolute fallbacks
         clean_pid = pid.replace("_", "").replace(".", "").replace("-", "").replace(" ", "").lower()
         paths_to_try.append(os.path.join('images', f"{clean_pid}.png"))
         paths_to_try.append(os.path.join('images', image_filename))
@@ -87,7 +92,6 @@ def render_problem_diagram(prob):
                 except: continue
 
     if not found:
-        # Debugging text in the UI if it still fails
         ax.text(0.5, 0.5, f"Not Found: {image_filename}\nID: {pid}\nPath: images/{folder_name}/images/", color='red', ha='center', va='center', fontsize=8)
         ax.set_xlim(0, 1); ax.set_ylim(0, 1)
 
