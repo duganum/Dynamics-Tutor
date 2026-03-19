@@ -94,7 +94,7 @@ if st.session_state.page == "landing":
         clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
         low_cat = clean_cat.lower()
         
-        # Mapping Logic - Reordered to put Rigid Body after Impact
+        # Revised Category Mapping Logic for Ordering
         if "statics" in low_cat:
             cat_main = "00_Statics"
         elif "kinematics" in low_cat and "particle" in low_cat:
@@ -109,7 +109,8 @@ if st.session_state.page == "landing":
             cat_main = "05_Impulse and Momentum"
         elif "impact" in low_cat:
             cat_main = "06_Impact"
-        elif "rotation" in low_cat or "rigid body" in low_cat:
+        # Added Rigid Body Kinematics category check
+        elif "rotation" in low_cat or "rigid" in low_cat:
             cat_main = "07_Rigid Body Kinematics"
         else:
             cat_main = clean_cat
