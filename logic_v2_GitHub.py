@@ -3,6 +3,7 @@ import google.generativeai as genai
 import json
 import smtplib
 import re
+import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -21,7 +22,7 @@ def get_gemini_model(system_instruction):
 
 def load_problems():
     """저장소의 JSON 파일에서 문제 목록을 불러오고 새 문제를 병합합니다."""
-    # New problems to be integrated (Impact Problems 239, 249, 252 added)
+    # List updated to include Rigid Body Kinematics (Rotation)
     new_problems = [
         {
             "id": "176",
@@ -64,29 +65,49 @@ def load_problems():
             "statement": "Determine the value of the coefficient of restitution $e$ which results in the final velocity $v'$ being perpendicular to the initial velocity $v$. The initial velocity $v$ makes an angle of 60° with the wall as shown.",
             "targets": { "e": 0.333 },
             "required_units": ["unitless"]
+        },
+        {
+            "id": "K_2.6_1",
+            "category": "Rigid Body Kinematics (Rotation)",
+            "statement": "For the instant represented, point $B$ crosses the horizontal axis through point $O$ with a downward velocity $v = 0.6$ m/s. Determine the corresponding value of the angular velocity $\omega_{OA}$ of link $OA$. Length $OA = 130$ mm, length $AB = 90$ mm, horizontal distance $OB = 180$ mm.",
+            "targets": { "omega_OA": 10.0 },
+            "required_units": ["rad/s"]
+        },
+        {
+            "id": "K_2.6_2",
+            "category": "Rigid Body Kinematics (Rotation)",
+            "statement": "The mass center $G$ of the car has a velocity of $40$ mi/hr at position $A$ and $1.52$ seconds later at $B$ has a velocity of $50$ mi/hr. The radius of curvature of the road at $B$ is $180$ ft. Calculate the angular velocity $\omega$ of the car at $B$ and the average angular velocity $\omega_{av}$ of the car between $A$ and $B$. Initial angle is $30^{\circ}$ from vertical at $A$.",
+            "targets": { "omega_B": 0.407, "omega_av": 0.344 },
+            "required_units": ["rad/sec"]
+        },
+        {
+            "id": "K_2.6_3",
+            "category": "Rigid Body Kinematics (Rotation)",
+            "statement": "The rotating arm starts from rest and acquires a rotational speed $N = 600$ rev/min in $2$ seconds with constant angular acceleration. Find the time $t$ after starting before the acceleration vector of end $P$ (at radius $6''$) makes an angle of $45^{\circ}$ with the arm $OP$.",
+            "targets": { "t": 0.1784 },
+            "required_units": ["s"]
         }
     ]
 
     try:
-        with open('problems_v2_GitHub.json', 'r') as f:
-            problems = json.load(f)
+        if os.path.exists('problems_v2_GitHub.json'):
+            with open('problems_v2_GitHub.json', 'r') as f:
+                problems = json.load(f)
+        else:
+            problems = []
             
-        # Merge logic: Add new problems if they don't already exist by ID
         existing_ids = {p['id'] for p in problems}
         for np in new_problems:
             if np['id'] not in existing_ids:
                 problems.append(np)
         return problems
     except Exception as e:
-        # If file doesn't exist yet, just return the new problems
         return new_problems
 
 def check_numeric_match(user_val, correct_val, tolerance=0.05):
     """숫자를 추출하여 정답과 5% 오차 범위 내에 있는지 확인합니다."""
     try:
-        # If correct_val is a string (like the expression in prob 209), skip numeric check
         if isinstance(correct_val, str):
-            # Basic string cleanup for expression matching
             u_clean = str(user_val).replace(" ", "").lower()
             c_clean = str(correct_val).replace(" ", "").lower()
             return c_clean in u_clean
