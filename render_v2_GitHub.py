@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import io
-import re  # FIXED: Added missing import
+import re
 
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    FIXED: Added 're' import and improved HW 7/11 numeric matching.
+    FIXED: Removed stray commas and syntax errors.
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -68,7 +68,7 @@ def render_problem_diagram(prob):
             ax.set_xlim(-1, 7); ax.set_ylim(-2, 1)
             found = True
 
-    # --- 2. Dynamics Image Loader (HW Folders & Root) ---
+    # --- 2. Dynamics Image Loader ---
     if not found:
         category = str(prob.get("category", "")).lower()
         clean_pid = pid.replace("_", "").replace(".", "").lower()
@@ -100,7 +100,7 @@ def render_problem_diagram(prob):
             paths_to_try.append(os.path.join('images', folder_name, 'images', image_filename))
             paths_to_try.append(os.path.join('images', folder_name, image_filename))
         
-        # Universal fallback for root images (k221.png etc.)
+        # Universal fallback for root images
         paths_to_try.append(os.path.join('images', image_filename))
         
         for img_path in paths_to_try:
