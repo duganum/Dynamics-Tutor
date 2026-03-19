@@ -7,7 +7,7 @@ import re
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    FIXED: Robust number extraction to prevent 'HW7' from being read as '7.png'.
+    FIXED: Dynamic folder discovery to handle irregular spacing in HW folder names.
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -37,49 +37,42 @@ def render_problem_diagram(prob):
     if not found:
         category = str(prob.get("category", "")).lower()
         
-        # FIXED: Extraction logic. 
-        # If ID is "HW7_67", this looks for the number AFTER the underscore/dash.
-        if "_" in pid:
-            image_number = pid.split("_")[-1]
-        elif "-" in pid:
-            image_number = pid.split("-")[-1]
+        # Extract numeric suffix (e.g., HW7_67 -> 67)
+        if "_" in pid: image_number = pid.split("_")[-1]
+        elif "-" in pid: image_number = pid.split("-")[-1]
         else:
-            # Fallback to standard regex if no separator found
             match = re.search(r'(\d+)$', pid)
             image_number = match.group(1) if match else pid
             
         image_filename = f"{image_number}.png"
-        folder_name = None
+        target_hw = None
+        
+        # Determine which HW prefix to search for
+        if "curvilinear" in category or "hw7" in pid.lower().replace(" ", ""): target_hw = "HW 7"
+        elif "rectilinear" in category or "hw6" in pid.lower().replace(" ", ""): target_hw = "HW 6"
+        elif "impact" in category or "hw10" in pid.lower().replace(" ", ""): target_hw = "HW 10"
+        elif "momentum" in category or "impulse" in category or "hw9" in pid.lower().replace(" ", ""): target_hw = "HW 9"
+        elif "work" in category or "energy" in category or "hw8" in pid.lower().replace(" ", ""): target_hw = "HW 8"
+        elif "rotation" in category or "rigid" in category or "hw11" in pid.lower().replace(" ", ""): target_hw = "HW 11"
 
-        # Mapping to the exact folder names in your repository
-        if "curvilinear" in category or "hw 7" in pid.lower() or "hw7" in pid.lower():
-            folder_name = "HW 7 (kinetics of particles-curvilinear motion)"
-        elif "rectilinear" in category or "hw 6" in pid.lower() or "hw6" in pid.lower():
-            folder_name = "HW 6 (kinetics of particles-rectilinear motion)"
-        elif "impact" in category or "hw 10" in pid.lower():
-            folder_name = "HW 10 (Impact)"
-        elif "momentum" in category or "impulse" in category or "hw 9" in pid.lower():
-            folder_name = "HW 9 (Impuls and momentum)"
-        elif "work" in category or "energy" in category or "hw 8" in pid.lower():
-            folder_name = "HW 8 (work and energy)"
-        elif "rotation" in category or "rigid" in category or "hw 11" in pid.lower():
-            folder_name = "HW 11 (kinematics of rigid body-rotation)"
-            # Manual overrides for HW 11
-            if pid.endswith("_1"): image_filename = "71.png"
-            elif pid.endswith("_2"): image_filename = "6.png"
-            elif pid.endswith("_3"): image_filename = "16.png"
-
-        # List of paths to try (Triple-nested /images/ structure)
         paths_to_try = []
-        if folder_name:
-            paths_to_try.append(os.path.join('images', folder_name, 'images', image_filename))
-            paths_to_try.append(os.path.join('images', folder_name, image_filename))
 
-        # Absolute fallbacks
+        # DYNAMIC FOLDER DISCOVERY: Look for a folder starting with "HW X"
+        if target_hw and os.path.exists('images'):
+            all_folders = [f for f in os.listdir('images') if os.path.isdir(os.path.join('images', f))]
+            for folder in all_folders:
+                if folder.startswith(target_hw):
+                    # Check the triple-nested path
+                    paths_to_try.append(os.path.join('images', folder, 'images', image_filename))
+                    # Check the single-nested path
+                    paths_to_try.append(os.path.join('images', folder, image_filename))
+
+        # Absolute Fallbacks
         clean_pid = pid.replace("_", "").replace(".", "").replace("-", "").replace(" ", "").lower()
         paths_to_try.append(os.path.join('images', f"{clean_pid}.png"))
         paths_to_try.append(os.path.join('images', image_filename))
 
+        # Execute Search
         for img_path in paths_to_try:
             if os.path.exists(img_path):
                 try:
@@ -92,7 +85,8 @@ def render_problem_diagram(prob):
                 except: continue
 
     if not found:
-        ax.text(0.5, 0.5, f"Not Found: {image_filename}\nID: {pid}\nPath: images/{folder_name}/images/", color='red', ha='center', va='center', fontsize=8)
+        # Detailed error message to verify exactly where it looked
+        ax.text(0.5, 0.5, f"Not Found: {image_filename}\nID: {pid}\nHW Ref: {target_hw}", color='red', ha='center', va='center', fontsize=7)
         ax.set_xlim(0, 1); ax.set_ylim(0, 1)
 
     ax.axis('off')
