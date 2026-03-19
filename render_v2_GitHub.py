@@ -6,9 +6,11 @@ import re
 
 def render_problem_diagram(prob):
     """
-    Generates UNIQUE procedural FBDs for Statics S_1 series 
-    and loads external images for Dynamics.
+    Generates procedural FBDs for Statics or loads external images for Dynamics.
+    Supports nested paths: images/[HW Folder]/images/[ID].png
+    Handles specific spacing and naming in HW 7 and HW 8 directory naming.
     """
+    # Ensure we handle both the full object and just the ID for backward compatibility
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
     else:
@@ -19,185 +21,261 @@ def render_problem_diagram(prob):
     ax.set_aspect('equal')
     found = False
 
-    # --- 1. UNIQUE Procedural Statics Diagrams ---
-    if pid.startswith("S_1"):
-        # Section S_1.1: Particle Equilibrium / Force Vectors
-        if "S_1.1" in pid:
-            ax.plot(0, 0, 'ko', markersize=10) 
-            if pid == "S_1.1_1":
-                # PERFECTLY STRAIGHT UP ARROW (Separate text from arrow to avoid bounding box skew)
-                ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-                ax.text(0.1, 1.5, 'F1', color='blue')
-                ax.annotate('', xy=(1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-                ax.text(1.5, 0.1, 'F2', color='green')
-                ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-                ax.text(0.1, -1.5, 'W', color='red')
-            elif pid == "S_1.1_2":
-                # PERFECTLY STRAIGHT UP ARROW
-                ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-                ax.text(0.1, 1.5, 'F1', color='blue')
-                ax.annotate('', xy=(-1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-                ax.text(-1.5, 0.1, 'F2', color='green')
-                ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-                ax.text(0.1, -1.5, 'W', color='red')
-            elif pid == "S_1.1_3":
-                ax.annotate('', xy=(1.5, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-                ax.text(1.6, 1.6, 'F1', color='blue')
-                ax.annotate('', xy=(-1.5, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-                ax.text(-1.7, 1.6, 'F2', color='green')
-                ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-                ax.text(0.1, -1.5, 'W', color='red')
-            ax.set_xlim(-2.5, 2.5); ax.set_ylim(-2.5, 2.5)
+    # --- 1. Procedural Statics Diagrams (S_1.1 to S_1.4) ---
+    if pid.startswith("S_1.1"):
+        if pid == "S_1.1_1": # 50kg mass cables
+            ax.plot(0, 0, 'ko', markersize=8)
+            ax.annotate('', xy=(-1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='blue'))
+            ax.annotate('', xy=(1.2, 1.2), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='green'))
+            ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red'))
+            ax.text(-1.4, 0.2, '$T_A$', color='blue'); ax.text(1.0, 1.3, '$T_B (45^\circ)$', color='green')
+            ax.set_xlim(-2, 2); ax.set_ylim(-2, 2)
             found = True
-        
-        # Section S_1.2: Simple Trusses
-        elif "S_1.2" in pid:
-            if pid == "S_1.2_1":
-                pts = np.array([[0,0], [2,1], [4,0], [2,0], [0,0]])
-                ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([2,2], [0,1], 'k-', lw=2)
-            elif pid == "S_1.2_2":
-                pts = np.array([[0,0], [1,1.5], [2,1.5], [3,0], [0,0]])
-                ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([1,2], [1.5,0], 'k-', lw=2)
-            elif pid == "S_1.2_3":
-                pts = np.array([[0,0], [0,2], [2,0], [0,0]])
-                ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([0,1], [1,0], 'k-', lw=2)
+        elif pid == "S_1.1_2": # Cylinder on Incline
+            theta = np.radians(30)
+            ax.plot([-2, 2], [2*np.tan(-theta), -2*np.tan(-theta)], 'k-', lw=2) 
+            ax.add_patch(plt.Circle((0, 0.5), 0.5, color='gray', alpha=0.5)) 
+            ax.annotate('', xy=(0.5*np.sin(theta), 0.5+0.5*np.cos(theta)), xytext=(0, 0.5), 
+                        arrowprops=dict(arrowstyle='->', color='red')) 
+            ax.set_xlim(-2, 2); ax.set_ylim(-1, 2)
+            found = True
+        elif pid == "S_1.1_3": # Beam with Pin and Cable
+            ax.plot([0, 3], [0, 0], 'brown', lw=6) 
+            ax.plot(0, 0, 'k^', markersize=10) 
+            ax.annotate('', xy=(3, 2), xytext=(3, 0), arrowprops=dict(arrowstyle='-', ls='--')) 
+            ax.set_xlim(-0.5, 4); ax.set_ylim(-1, 3)
+            found = True
+
+    elif pid.startswith("S_1.2"):
+        if pid == "S_1.2_1":
+            pts = np.array([[0,0], [2,2], [4,0], [0,0]])
+            ax.plot(pts[:,0], pts[:,1], 'k-o')
+            ax.set_xlim(-0.5, 4.5); ax.set_ylim(-1, 3)
+            found = True
+        elif pid == "S_1.2_2":
+            pts = np.array([[0,0], [1, 1.73], [2,0], [0,0]])
+            ax.plot(pts[:,0], pts[:,1], 'k-o')
+            ax.set_xlim(-0.5, 2.5); ax.set_ylim(-0.5, 2.5)
+            found = True
+        elif pid == "S_1.2_3":
+            ax.plot([0,1,2,3], [0,1,1,0], 'k-o'); ax.plot([0,3], [0,0], 'k-o')
+            ax.set_xlim(-0.5, 3.5); ax.set_ylim(-0.5, 2)
+            found = True
+
+    # --- Geometric Properties (S_1.3) ---
+    elif pid.startswith("S_1.3"):
+        if pid == "S_1.3_1": # Renders a RECTANGLE
+            pts = np.array([[0,0], [4,0], [4,2], [0,2], [0,0]])
+            ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
+            ax.plot(2, 1, 'rx', markersize=10) # Centroid marker
             ax.set_xlim(-0.5, 4.5); ax.set_ylim(-0.5, 2.5)
             found = True
-
-        # Section S_1.3: Geometric Properties (Shapes)
-        elif "S_1.3" in pid:
-            if pid == "S_1.3_1": # Rectangle Centroid
-                rect = plt.Rectangle((0, 0), 4, 6, color='gray', alpha=0.3)
-                ax.add_patch(rect); ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
-                ax.plot(2, 3, 'rx', markersize=10)
-            elif pid == "S_1.3_2": # Triangle Centroid
-                tri = plt.Polygon([[0,0], [4,0], [0,6]], color='gray', alpha=0.3)
-                ax.add_patch(tri); ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
-                ax.plot(1.33, 2, 'rx', markersize=10)
-            elif pid == "S_1.3_3": # Semicircle Centroid
-                theta = np.linspace(0, np.pi, 100)
-                ax.fill(3*np.cos(theta), 3*np.sin(theta), color='gray', alpha=0.3)
-                ax.set_xlim(-4, 4); ax.set_ylim(-1, 4)
-                ax.plot(0, 1.27, 'rx', markersize=10)
+        elif pid == "S_1.3_2": # Renders a SQUARE
+            pts = np.array([[0,0], [2,0], [2,2], [0,2], [0,0]])
+            ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
+            ax.plot(1, 1, 'rx', markersize=10) # Centroid marker
+            ax.set_xlim(-0.5, 2.5); ax.set_ylim(-0.5, 2.5)
+            found = True
+        elif pid == "S_1.3_3": # Composite L-shape
+            pts = np.array([[0,0], [4,0], [4,1], [1,1], [1,4], [0,4], [0,0]])
+            ax.fill(pts[:,0], pts[:,1], color='orange', alpha=0.3)
+            ax.set_xlim(-1, 5); ax.set_ylim(-1, 5)
             found = True
 
-        # Section S_1.4: Equilibrium (FIXED to match problem text perfectly)
-        elif "S_1.4" in pid:
-            if pid == "S_1.4_1": # Rigid bar balanced on a pivot
-                ax.plot([0, 6], [1, 1], 'k-', lw=4) # Bar
-                ax.add_patch(plt.Polygon([[1.5, 0], [2.5, 0], [2, 1]], color='gray')) # Pivot triangle
-                ax.plot([-1, 7], [0, 0], 'k-', lw=2) # Ground
-                # 10N Force Left
-                ax.annotate('', xy=(0, 0), xytext=(0, 1), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-                ax.text(-0.8, 0.5, '10 N', color='red')
-                # Force F Right
-                ax.annotate('', xy=(6, 0), xytext=(6, 1), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-                ax.text(6.2, 0.5, 'F', color='blue')
-                ax.set_xlim(-1, 7); ax.set_ylim(-1, 3)
-                
-            elif pid == "S_1.4_2": # Two people carrying log
-                ax.plot([0, 6], [0, 0], color='brown', lw=10) # Log
-                # Straight UP vectors
-                ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-                ax.text(0.1, 1.6, 'F_A', color='blue')
-                ax.annotate('', xy=(4, 1.5), xytext=(4, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-                ax.text(4.1, 1.6, 'F_B', color='green')
-                # Straight DOWN weight
-                ax.annotate('', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-                ax.text(3.2, -1.0, '60 kg', color='red')
-                ax.set_xlim(-1, 7); ax.set_ylim(-2, 2.5)
-                
-            elif pid == "S_1.4_3": # Cantilever Beam Moment
-                ax.plot([0, 0], [-1, 1], 'k-', lw=4) # Wall
-                ax.plot([0, 3], [0, 0], 'k-', lw=6) # Beam
-                ax.annotate('', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-                ax.text(3.2, -1.0, 'P', color='red')
-                ax.set_xlim(-0.5, 4); ax.set_ylim(-2, 1.5)
+    # --- Equilibrium (S_1.4) ---
+    elif pid.startswith("S_1.4"):
+        if pid == "S_1.4_1": # Lever Equilibrium
+            ax.plot([-3, 3], [0, 0], 'k-', lw=4)
+            ax.plot(0, -0.2, 'k^', markersize=15) # Fulcrum
+            ax.annotate('100 N', xy=(-2.5, -1), xytext=(-2.5, 0), arrowprops=dict(arrowstyle='->', color='red'))
+            ax.annotate('F', xy=(2.5, 0), xytext=(2.5, 1), arrowprops=dict(arrowstyle='->', color='blue'))
+            ax.set_xlim(-4, 4); ax.set_ylim(-2, 2)
+            found = True
+        elif pid == "S_1.4_2": # Cantilever with tip force
+            ax.plot([0, 3], [0, 0], color='gray', lw=8, solid_capstyle='butt')
+            ax.plot(0, 0, 'ko', markersize=12)
+            ax.annotate('', xy=(3, -1), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+            ax.text(3.1, -0.5, '100 N', color='red', fontweight='bold')
+            ax.set_xlim(-0.5, 4); ax.set_ylim(-1.5, 1.5)
+            found = True
+        elif pid == "S_1.4_3": # FIXED: Log carried by two people (Vector Rendering)
+            # Draw the log
+            ax.plot([0, 6], [0, 0], color='brown', lw=10, solid_capstyle='round', label='Log (60 kg)')
+            # Center of gravity (Weight force)
+            ax.annotate('', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='black', lw=2))
+            ax.text(3.1, -1.2, 'W=588N', fontsize=9)
+            # Person A at the end (x=0)
+            ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+            ax.text(-0.5, 1.6, '$F_A$', color='blue', fontweight='bold')
+            # Person B at 1/3 from the other end (x = 6 - 6/3 = 4)
+            ax.annotate('', xy=(4, 1.5), xytext=(4, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
+            ax.text(4.1, 1.6, '$F_B$', color='green', fontweight='bold')
+            # Dimensions
+            ax.text(2, 0.2, 'L=6m', fontsize=8, ha='center')
+            ax.set_xlim(-1, 7); ax.set_ylim(-2, 3)
             found = True
 
-    # --- 2. Dynamics Image Loader ---
+    # --- 2. HW Directory Image Loader (Nested Path Logic) ---
     if not found:
+        hw_title = prob.get("hw_title")
+        hw_subtitle = prob.get("hw_subtitle")
         category = str(prob.get("category", "")).lower()
-        if "_" in pid: image_number = pid.split("_")[-1]
-        elif "-" in pid: image_number = pid.split("-")[-1]
-        else:
-            match = re.search(r'(\d+)$', pid)
-            image_number = match.group(1) if match else pid
-            
-        image_filename = f"{image_number}.png"
-        target_hw = None
         
-        if "rotation" in category or "rigid" in category or "hw11" in pid.lower().replace(" ", "") or pid.startswith("K_2.6"):
-            target_hw = "HW 11"
-            if pid.endswith("_1"): image_filename = "71.png"
-            elif pid.endswith("_2"): image_filename = "6.png"
-            elif pid.endswith("_3"): image_filename = "16.png"
-        elif "curvilinear" in category or "hw7" in pid.lower().replace(" ", ""): target_hw = "HW 7"
-        elif "rectilinear" in category or "hw6" in pid.lower().replace(" ", ""): target_hw = "HW 6"
-        elif "impact" in category or "hw10" in pid.lower().replace(" ", ""): target_hw = "HW 10"
-        elif "momentum" in category or "impulse" in category or "hw9" in pid.lower().replace(" ", ""): target_hw = "HW 9"
-        elif "work" in category or "energy" in category or "hw8" in pid.lower().replace(" ", ""): target_hw = "HW 8"
+        folder_name = None
+        
+        # Mapping for Homework Folders
+        if "impact" in category or pid in ["239", "243", "249", "252"]:
+            folder_name = "HW 10 (Impact)"
+            image_filename = f"{pid}.png"
+        elif any(x in category for x in ["momentum", "impulse"]) or pid in ["176", "198", "209"]:
+            folder_name = "HW 9 (Impuls and momentum)"
+            image_filename = f"{pid}.png"
+        elif "work" in category or "energy" in category or pid in ["141", "158", "161", "162"]:
+            folder_name = "HW 8 (work and energy)"
+            image_filename = f"{pid}.png"
+        elif hw_title and hw_subtitle:
+            if hw_title == "HW 7":
+                folder_name = f"HW 7  ({hw_subtitle})" 
+            else:
+                folder_name = f"{hw_title} ({hw_subtitle})"
+            image_filename = f"{pid.split('_')[-1]}.png"
 
-        paths_to_try = []
-        if target_hw and os.path.exists('images'):
-            all_folders = [f for f in os.listdir('images') if os.path.isdir(os.path.join('images', f))]
-            for folder in all_folders:
-                if folder.startswith(target_hw):
-                    paths_to_try.append(os.path.join('images', folder, 'images', image_filename))
-                    paths_to_try.append(os.path.join('images', folder, image_filename))
-
-        clean_pid = pid.replace("_", "").replace(".", "").replace("-", "").replace(" ", "").lower()
-        paths_to_try.append(os.path.join('images', f"{clean_pid}.png"))
-        paths_to_try.append(os.path.join('images', image_filename))
-
-        for img_path in paths_to_try:
-            if os.path.exists(img_path):
-                try:
+        if folder_name:
+            img_path = os.path.join('images', folder_name, 'images', image_filename)
+            try:
+                if os.path.exists(img_path):
                     img = plt.imread(img_path)
                     ax.imshow(img)
                     h, w = img.shape[:2]
                     ax.set_xlim(0, w); ax.set_ylim(h, 0)
                     found = True
-                    break
-                except: continue
+            except Exception:
+                pass
+        
+        if not found:
+            clean_name = pid.replace("_", "").replace(".", "").lower()
+            img_path_alt = os.path.join('images', f'{clean_name}.png')
+            if os.path.exists(img_path_alt):
+                try:
+                    img = plt.imread(img_path_alt)
+                    ax.imshow(img)
+                    h, w = img.shape[:2]
+                    ax.set_xlim(0, w); ax.set_ylim(h, 0)
+                    found = True
+                except Exception:
+                    pass
 
+    # --- 3. Error Handling ---
     if not found:
-        ax.text(0.5, 0.5, f"Not Found: {image_filename}\nID: {pid}", color='red', ha='center', va='center', fontsize=7)
+        ax.text(0.5, 0.5, f"Diagram Not Found\nID: {pid}", color='red', ha='center', va='center')
         ax.set_xlim(0, 1); ax.set_ylim(0, 1)
 
     ax.axis('off')
+    
+    try:
+        plt.tight_layout()
+    except Exception:
+        plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+
     buf = io.BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+    fig.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
     buf.seek(0)
     return buf
 
 def render_lecture_visual(topic, params=None):
+    """Visualizes derivation components with a strictly centered origin."""
+    fig, ax = plt.subplots(figsize=(6, 6), dpi=150)
     if params is None: params = {}
-    fig, ax = plt.subplots(figsize=(6, 4), dpi=150)
+    
+    ax.axhline(0, color='black', lw=1.5, zorder=2)
+    ax.axvline(0, color='black', lw=1.5, zorder=2)
+    ax.grid(True, linestyle=':', alpha=0.6)
+    ax.set_aspect('equal')
     topic_clean = topic.lower().strip()
+    
+    if "relative" in topic_clean:
+        vA = params.get('vA', [15, 5])
+        vB = params.get('vB', [10, -5])
+        v_rel_x, v_rel_y = vA[0] - vB[0], vA[1] - vB[1]
+        ax.quiver(0, 0, vA[0], vA[1], color='blue', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_A$')
+        ax.quiver(0, 0, vB[0], vB[1], color='red', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_B$')
+        ax.quiver(vB[0], vB[1], v_rel_x, v_rel_y, color='green', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_{A/B}$')
+        limit = max(np.abs(vA + vB)) + 5
+        ax.set_xlim(-limit, limit); ax.set_ylim(-limit, limit)
+        ax.set_title(r"Relative Motion: $\vec{v}_A = \vec{v}_B + \vec{v}_{A/B}$")
+        ax.legend(loc='upper right')
 
-    if "projectile" in topic_clean:
-        v0 = params.get("v0", 50.0); angle = np.radians(params.get("angle", 0)); g = params.get("g", 10.0)
-        t_total = (2 * v0 * np.sin(angle)) / g if g > 0 and angle > 0 else 2.0
-        t = np.linspace(0, t_total, 100); x = v0 * np.cos(angle) * t; y = v0 * np.sin(angle) * t - 0.5 * g * t**2
-        ax.plot(x, y, 'b-', lw=2)
-        ax.set_xlim(min(0, np.min(x)), max(10, np.max(x))*1.1 if len(x)>1 else 10)
-        ax.set_ylim(min(-5, np.min(y)), max(10, np.max(y))*1.2 if len(y)>1 else 10)
+    elif "projectile" in topic_clean:
+        v0, angle = params.get('v0', 30), params.get('angle', 45)
+        g, theta = 9.81, np.radians(angle)
+        t_flight = 2 * v0 * np.sin(theta) / g
+        t = np.linspace(0, t_flight, 100)
+        x = v0 * np.cos(theta) * t
+        y = v0 * np.sin(theta) * t - 0.5 * g * t**2
+        ax.plot(x, y, 'g-', lw=2)
+        ax.set_xlim(-5, max(x)+5); ax.set_ylim(-5, max(y)+5)
+        ax.set_title(r"Projectile Trajectory Analysis")
+
     elif "normal" in topic_clean or "tangent" in topic_clean:
-        v, rho, at = params.get("v", 50.0), params.get("rho", 255.0), params.get("at", 0.0)
-        an = (v**2) / rho if rho > 0 else 0
-        theta_path = np.linspace(0, np.pi/2, 100); ax.plot(rho * np.cos(theta_path), rho * np.sin(theta_path), 'k--', alpha=0.3)
-        px, py = rho * np.cos(np.pi/4), rho * np.sin(np.pi/4); ax.plot(px, py, 'bo', markersize=10)
-        ax.quiver(px, py, -an*np.cos(np.pi/4), -an*np.sin(np.pi/4), color='red', angles='xy', scale_units='xy', scale=1, label="$a_n$")
-        ax.quiver(px, py, -at*np.sin(np.pi/4), at*np.cos(np.pi/4), color='green', angles='xy', scale_units='xy', scale=1, label="$a_t$")
-    elif "polar" in topic_clean:
-        r_val, rdot, tdot = params.get("r", 5.0), params.get("rdot", 0.0), params.get("theta_dot", 0.0)
-        theta_val = np.radians(45); px, py = r_val * np.cos(theta_val), r_val * np.sin(theta_val)
-        ax.quiver(px, py, rdot*np.cos(theta_val), rdot*np.sin(theta_val), color='red', angles='xy', scale_units='xy', scale=1, label="$\dot{r}e_r$")
-        v_theta = r_val * tdot; ax.quiver(px, py, -v_theta*np.sin(theta_val), v_theta*np.cos(theta_val), color='green', angles='xy', scale_units='xy', scale=1, label="$r\dot{\\theta}e_\\theta$")
-        ax.plot([0, px], [0, py], 'k--', alpha=0.5); ax.plot(px, py, 'ro', markersize=10); ax.set_xlim(-15, 15); ax.set_ylim(-15, 15)
+        v, rho = params.get('v', 20), params.get('rho', 50)
+        theta_arc = np.linspace(np.pi/4, 3*np.pi/4, 100)
+        ax.plot(rho * np.cos(theta_arc), rho * np.sin(theta_arc) - rho, 'k--', alpha=0.5)
+        ax.plot(0, 0, 'ko', markersize=8)
+        ax.quiver(0, 0, v, 0, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$v$ (Tangent)')
+        ax.quiver(0, 0, 0, -(v**2/rho), color='red', angles='xy', scale_units='xy', scale=1, label=r'$a_n = v^2/\rho$')
+        ax.set_xlim(-rho, rho); ax.set_ylim(-rho, rho/2)
+        ax.set_title(r"Normal and Tangential Acceleration")
+        ax.legend()
 
-    ax.axhline(0, color='black', lw=1); ax.axvline(0, color='black', lw=1); ax.grid(True, linestyle=':', alpha=0.6)
-    buf = io.BytesIO(); fig.savefig(buf, format='png', bbox_inches='tight'); plt.close(fig); buf.seek(0)
+    elif "polar" in topic_clean:
+        r, theta_deg = params.get('r', 20), params.get('theta', 45)
+        theta = np.radians(theta_deg)
+        x, y = r * np.cos(theta), r * np.sin(theta)
+        ax.plot([0, x], [0, y], 'k-o', lw=2)
+        ax.quiver(x, y, np.cos(theta)*5, np.sin(theta)*5, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$e_r$')
+        ax.quiver(x, y, -np.sin(theta)*5, np.cos(theta)*5, color='red', angles='xy', scale_units='xy', scale=1, label=r'$e_\theta$')
+        ax.set_xlim(-r-10, r+10); ax.set_ylim(-r-10, r+10)
+        ax.set_title(r"Polar Coordinates: Radial & Transverse")
+        ax.legend()
+        
+    elif "rigid" in topic_clean:
+        vA_x, vA_y = params.get('vA_x', 5.0), params.get('vA_y', 0.0)
+        omega = params.get('omega', 2.0)
+        r_len, theta_deg = params.get('r', 10.0), params.get('theta', 45)
+        
+        theta = np.radians(theta_deg)
+        Bx, By = r_len * np.cos(theta), r_len * np.sin(theta)
+        
+        # Velocity calculations: v_B/A = omega x r_B/A
+        vB_rel_x, vB_rel_y = -omega * By, omega * Bx
+        vB_x, vB_y = vA_x + vB_rel_x, vA_y + vB_rel_y
+        
+        # Draw rigid body link
+        ax.plot([0, Bx], [0, By], 'k-', lw=5, solid_capstyle='round', alpha=0.5, label="Rigid Link AB")
+        ax.plot(0, 0, 'ko', markersize=8); ax.plot(Bx, By, 'ko', markersize=8)
+        ax.text(-2, -2, "A", fontsize=12, fontweight='bold')
+        ax.text(Bx+1, By+1, "B", fontsize=12, fontweight='bold')
+        
+        # Draw vectors
+        if abs(vA_x) > 0.1 or abs(vA_y) > 0.1:
+            ax.quiver(0, 0, vA_x, vA_y, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_A$ (Translation)')
+        if abs(omega) > 0.1:
+            ax.quiver(Bx, By, vB_rel_x, vB_rel_y, color='green', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_{B/A} = \vec{\omega} \times \vec{r}_{B/A}$')
+        ax.quiver(Bx, By, vB_x, vB_y, color='red', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_B$ (Total)')
+        
+        limit = max(r_len, abs(vB_x), abs(vB_y)) + 10
+        ax.set_xlim(-limit, limit); ax.set_ylim(-limit, limit)
+        ax.set_title(r"Rigid Body: $\vec{v}_B = \vec{v}_A + \vec{\omega} \times \vec{r}_{B/A}$")
+        ax.legend(loc='upper left', fontsize=9)
+
+    try:
+        plt.tight_layout()
+    except Exception:
+        plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    plt.close(fig)
+    buf.seek(0)
     return buf
