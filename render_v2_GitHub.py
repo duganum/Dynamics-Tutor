@@ -123,7 +123,14 @@ def render_problem_diagram(prob):
         folder_name = None
         
         # Mapping for Homework Folders
-        if "impact" in category or pid in ["239", "243", "249", "252"]:
+        if "rotation" in category or pid in ["K_2.6_1", "K_2.6_2", "K_2.6_3", "71", "6", "16"]:
+            folder_name = "HW 11 (kinematics of rigid body-rotation)"
+            # Handle standard IDs or shorthand image filenames
+            if pid == "K_2.6_1": image_filename = "71.png"
+            elif pid == "K_2.6_2": image_filename = "6.png"
+            elif pid == "K_2.6_3": image_filename = "16.png"
+            else: image_filename = f"{pid}.png"
+        elif "impact" in category or pid in ["239", "243", "249", "252"]:
             folder_name = "HW 10 (Impact)"
             image_filename = f"{pid}.png"
         elif any(x in category for x in ["momentum", "impulse"]) or pid in ["176", "198", "209"]:
