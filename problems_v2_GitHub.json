@@ -310,9 +310,9 @@
   {
     "id": "K_2.6_1",
     "category": "Rigid Body Kinematics (Rotation)",
-    "statement": "For the instant represented, point $B$ crosses the horizontal axis through point $O$ with a downward velocity $v = 0.6$ m/s. Determine the corresponding value of the angular velocity $\\omega_{OA}$ of link $OA$. Length $OA = 130$ mm, length $AB = 90$ mm, horizontal distance $OB = 180$ mm.",
-    "targets": { "omega_OA": 10.0 },
-    "required_units": ["rad/s"]
+    "statement": "Magnetic tape is being fed over and around the light pulleys shown. If the speed $v$ of the tape is constant and the magnitude of the acceleration of point $A$ on the tape is 4/3 times that of point $B$, calculate the radius $r$ of the smaller pulley. The larger pulley has a radius of 4 in.",
+    "targets": { "r": 3.0 },
+    "required_units": ["in"]
   },
   {
     "id": "K_2.6_2",
