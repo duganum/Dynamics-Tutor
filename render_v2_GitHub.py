@@ -1,256 +1,244 @@
-import matplotlib.pyplot as plt
+import streamlit as st
+import json
+import re
 import numpy as np
-import os
-import io
+import matplotlib.pyplot as plt
+from google.api_core import exceptions  # For rate limit handling
+from logic_v2_GitHub import get_gemini_model, load_problems, check_numeric_match, analyze_and_send_report
+from render_v2_GitHub import render_problem_diagram, render_lecture_visual
 
-def render_problem_diagram(prob):
-    """
-    Generates procedural FBDs for Statics or loads external images for Dynamics.
-    Supports nested paths: images/[HW Folder]/images/[ID].png
-    Handles specific spacing and naming in HW 7 and HW 8 directory naming.
-    """
-    # Ensure we handle both the full object and just the ID for backward compatibility
-    if isinstance(prob, dict):
-        pid = str(prob.get('id', '')).strip()
-    else:
-        pid = str(prob).strip()
-        prob = {}
+# 1. Page Configuration
+st.set_page_config(page_title="Socratic Engineering Tutor", layout="wide")
 
-    fig, ax = plt.subplots(figsize=(4, 3), dpi=100)
-    ax.set_aspect('equal')
-    found = False
+# 2. CSS: Refined Spacing and UI consistency
+st.markdown("""
+    <style>
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 0rem;
+    }
+    div.stButton > button {
+        height: 60px;
+        padding: 5px 10px;
+        font-size: 14px;
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-    # --- 1. Procedural Statics Diagrams (S_1.1 to S_1.4) ---
-    if pid.startswith("S_1.1"):
-        if pid == "S_1.1_1": # 50kg mass cables
-            ax.plot(0, 0, 'ko', markersize=8)
-            ax.annotate('', xy=(-1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='blue'))
-            ax.annotate('', xy=(1.2, 1.2), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='green'))
-            ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red'))
-            ax.text(-1.4, 0.2, '$T_A$', color='blue'); ax.text(1.0, 1.3, '$T_B (45^\circ)$', color='green')
-            ax.set_xlim(-2, 2); ax.set_ylim(-2, 2)
-            found = True
-        elif pid == "S_1.1_2": # Cylinder on Incline
-            theta = np.radians(30)
-            ax.plot([-2, 2], [2*np.tan(-theta), -2*np.tan(-theta)], 'k-', lw=2) 
-            ax.add_patch(plt.Circle((0, 0.5), 0.5, color='gray', alpha=0.5)) 
-            ax.annotate('', xy=(0.5*np.sin(theta), 0.5+0.5*np.cos(theta)), xytext=(0, 0.5), 
-                        arrowprops=dict(arrowstyle='->', color='red')) 
-            ax.set_xlim(-2, 2); ax.set_ylim(-1, 2)
-            found = True
-        elif pid == "S_1.1_3": # Beam with Pin and Cable
-            ax.plot([0, 3], [0, 0], 'brown', lw=6) 
-            ax.plot(0, 0, 'k^', markersize=10) 
-            ax.annotate('', xy=(3, 2), xytext=(3, 0), arrowprops=dict(arrowstyle='-', ls='--')) 
-            ax.set_xlim(-0.5, 4); ax.set_ylim(-1, 3)
-            found = True
+# 3. Initialize Session State
+if "page" not in st.session_state: st.session_state.page = "landing"
+if "chat_sessions" not in st.session_state: st.session_state.chat_sessions = {}
+if "grading_data" not in st.session_state: st.session_state.grading_data = {}
+if "user_name" not in st.session_state: st.session_state.user_name = None
+if "lecture_topic" not in st.session_state: st.session_state.lecture_topic = None
+if "lecture_session" not in st.session_state: st.session_state.lecture_session = None
 
-    elif pid.startswith("S_1.2"):
-        if pid == "S_1.2_1":
-            pts = np.array([[0,0], [2,2], [4,0], [0,0]])
-            ax.plot(pts[:,0], pts[:,1], 'k-o')
-            ax.set_xlim(-0.5, 4.5); ax.set_ylim(-1, 3)
-            found = True
-        elif pid == "S_1.2_2":
-            pts = np.array([[0,0], [1, 1.73], [2,0], [0,0]])
-            ax.plot(pts[:,0], pts[:,1], 'k-o')
-            ax.set_xlim(-0.5, 2.5); ax.set_ylim(-0.5, 2.5)
-            found = True
-        elif pid == "S_1.2_3":
-            ax.plot([0,1,2,3], [0,1,1,0], 'k-o'); ax.plot([0,3], [0,0], 'k-o')
-            ax.set_xlim(-0.5, 3.5); ax.set_ylim(-0.5, 2)
-            found = True
+# Problems are now strictly loaded dynamically
+PROBLEMS = load_problems()
 
-    # --- Geometric Properties (S_1.3) ---
-    elif pid.startswith("S_1.3"):
-        if pid == "S_1.3_1": # Renders a RECTANGLE
-            pts = np.array([[0,0], [4,0], [4,2], [0,2], [0,0]])
-            ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
-            ax.plot(2, 1, 'rx', markersize=10) # Centroid marker
-            ax.set_xlim(-0.5, 4.5); ax.set_ylim(-0.5, 2.5)
-            found = True
-        elif pid == "S_1.3_2": # Renders a SQUARE
-            pts = np.array([[0,0], [2,0], [2,2], [0,2], [0,0]])
-            ax.fill(pts[:,0], pts[:,1], color='green', alpha=0.3)
-            ax.plot(1, 1, 'rx', markersize=10) # Centroid marker
-            ax.set_xlim(-0.5, 2.5); ax.set_ylim(-0.5, 2.5)
-            found = True
-        elif pid == "S_1.3_3": # Composite L-shape
-            pts = np.array([[0,0], [4,0], [4,1], [1,1], [1,4], [0,4], [0,0]])
-            ax.fill(pts[:,0], pts[:,1], color='orange', alpha=0.3)
-            ax.set_xlim(-1, 5); ax.set_ylim(-1, 5)
-            found = True
-
-    # --- Equilibrium (S_1.4) ---
-    elif pid.startswith("S_1.4"):
-        if pid == "S_1.4_1": # Lever Equilibrium
-            ax.plot([-3, 3], [0, 0], 'k-', lw=4)
-            ax.plot(0, -0.2, 'k^', markersize=15) # Fulcrum
-            ax.annotate('100 N', xy=(-2.5, -1), xytext=(-2.5, 0), arrowprops=dict(arrowstyle='->', color='red'))
-            ax.annotate('F', xy=(2.5, 0), xytext=(2.5, 1), arrowprops=dict(arrowstyle='->', color='blue'))
-            ax.set_xlim(-4, 4); ax.set_ylim(-2, 2)
-            found = True
-        elif pid == "S_1.4_2": # Cantilever with tip force
-            ax.plot([0, 3], [0, 0], color='gray', lw=8, solid_capstyle='butt')
-            ax.plot(0, 0, 'ko', markersize=12)
-            ax.annotate('', xy=(3, -1), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-            ax.text(3.1, -0.5, '100 N', color='red', fontweight='bold')
-            ax.set_xlim(-0.5, 4); ax.set_ylim(-1.5, 1.5)
-            found = True
-        elif pid == "S_1.4_3": # FIXED: Log carried by two people (Vector Rendering)
-            # Draw the log
-            ax.plot([0, 6], [0, 0], color='brown', lw=10, solid_capstyle='round', label='Log (60 kg)')
-            # Center of gravity (Weight force)
-            ax.annotate('', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='black', lw=2))
-            ax.text(3.1, -1.2, 'W=588N', fontsize=9)
-            # Person A at the end (x=0)
-            ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-            ax.text(-0.5, 1.6, '$F_A$', color='blue', fontweight='bold')
-            # Person B at 1/3 from the other end (x = 6 - 6/3 = 4)
-            ax.annotate('', xy=(4, 1.5), xytext=(4, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-            ax.text(4.1, 1.6, '$F_B$', color='green', fontweight='bold')
-            # Dimensions
-            ax.text(2, 0.2, 'L=6m', fontsize=8, ha='center')
-            ax.set_xlim(-1, 7); ax.set_ylim(-2, 3)
-            found = True
-
-    # --- 2. HW Directory Image Loader (Nested Path Logic) ---
-    if not found:
-        hw_title = prob.get("hw_title")
-        hw_subtitle = prob.get("hw_subtitle")
-        category = str(prob.get("category", "")).lower()
-        
-        folder_name = None
-        
-        # Mapping for Homework Folders
-        if "rotation" in category or pid in ["K_2.6_1", "K_2.6_2", "K_2.6_3", "71", "6", "16"]:
-            folder_name = "HW 11 (kinematics of rigid body-rotation)"
-            # Handle standard IDs or shorthand image filenames
-            if pid == "K_2.6_1": image_filename = "71.png"
-            elif pid == "K_2.6_2": image_filename = "6.png"
-            elif pid == "K_2.6_3": image_filename = "16.png"
-            else: image_filename = f"{pid}.png"
-        elif "impact" in category or pid in ["239", "243", "249", "252"]:
-            folder_name = "HW 10 (Impact)"
-            image_filename = f"{pid}.png"
-        elif any(x in category for x in ["momentum", "impulse"]) or pid in ["176", "198", "209"]:
-            folder_name = "HW 9 (Impuls and momentum)"
-            image_filename = f"{pid}.png"
-        elif "work" in category or "energy" in category or pid in ["141", "158", "161", "162"]:
-            folder_name = "HW 8 (work and energy)"
-            image_filename = f"{pid}.png"
-        elif hw_title and hw_subtitle:
-            if hw_title == "HW 7":
-                folder_name = f"HW 7  ({hw_subtitle})" 
+# --- Page 0: Name Entry ---
+if st.session_state.user_name is None:
+    st.title("🛡️ Engineering Mechanics Portal")
+    st.markdown("### Texas A&M University - Corpus Christi")
+    with st.form("name_form"):
+        name_input = st.text_input("Enter your Full Name to begin")
+        if st.form_submit_button("Access Tutor"):
+            if name_input.strip():
+                st.session_state.user_name = name_input.strip()
+                st.rerun()
             else:
-                folder_name = f"{hw_title} ({hw_subtitle})"
-            image_filename = f"{pid.split('_')[-1]}.png"
+                st.warning("Identification is required for academic reporting.")
+    st.stop()
 
-        if folder_name:
-            img_path = os.path.join('images', folder_name, 'images', image_filename)
-            try:
-                if os.path.exists(img_path):
-                    img = plt.imread(img_path)
-                    ax.imshow(img)
-                    h, w = img.shape[:2]
-                    ax.set_xlim(0, w); ax.set_ylim(h, 0)
-                    found = True
-            except Exception:
-                pass
+# --- Page 1: Main Menu ---
+if st.session_state.page == "landing":
+    st.title(f"🚀 Welcome, {st.session_state.user_name}!")
+    st.info("Texas A&M University - Corpus Christi | Dr. Dugan Um")
+    
+    # Section A: Interactive Lectures
+    st.markdown("---")
+    st.subheader("💡 Interactive Learning Agents")
+    col_l1, col_l2, col_l3, col_l4 = st.columns(4)
+    lectures = [
+        ("Projectile Motion", "K_2.2"), 
+        ("Normal & Tangent", "K_2.3"), 
+        ("Polar Coordinates", "K_2.4"),
+        ("Relative Motion", "K_2.5")
+    ]
+    for i, (name, pref) in enumerate(lectures):
+        with [col_l1, col_l2, col_l3, col_l4][i]:
+            if st.button(f"🎓 Lecture: {name}", key=f"lec_{pref}", use_container_width=True):
+                st.session_state.lecture_topic = name
+                st.session_state.page = "lecture"
+                st.session_state.lecture_session = None 
+                st.rerun()
+
+    # Section B: Practice Problems
+    st.markdown("---")
+    st.subheader("📝 Engineering Review Problems")
+    
+    categories = {}
+    for p in PROBLEMS:
+        raw_cat = p.get('category', 'General').split(":")[0].strip()
+        clean_cat = raw_cat.replace("HW 6", "").replace("HW 7", "").replace("HW 8", "").strip()
+        low_cat = clean_cat.lower()
         
-        if not found:
-            clean_name = pid.replace("_", "").replace(".", "").lower()
-            img_path_alt = os.path.join('images', f'{clean_name}.png')
-            if os.path.exists(img_path_alt):
+        # Mapping Logic - Reordered to put Rigid Body after Impact
+        if "statics" in low_cat:
+            cat_main = "00_Statics"
+        elif "kinematics" in low_cat and "particle" in low_cat:
+            cat_main = "01_Particle Kinematics"
+        elif "curvilinear" in low_cat:
+            cat_main = "02_Kinetics of Particles (Curvilinear)"
+        elif "rectilinear" in low_cat:
+            cat_main = "03_Kinetics of Particles (Rectilinear)"
+        elif "work" in low_cat or "energy" in low_cat:
+            cat_main = "04_Work and Energy"
+        elif "impulse" in low_cat or "momentum" in low_cat:
+            cat_main = "05_Impulse and Momentum"
+        elif "impact" in low_cat:
+            cat_main = "06_Impact"
+        elif "rotation" in low_cat or "rigid body" in low_cat:
+            cat_main = "07_Rigid Body Kinematics"
+        else:
+            cat_main = clean_cat
+            
+        if cat_main not in categories: categories[cat_main] = []
+        categories[cat_main].append(p)
+
+    sorted_cat_keys = sorted(categories.keys())
+    for cat_key in sorted_cat_keys:
+        probs = categories[cat_key]
+        display_name = re.sub(r'^[0-9a-z_]+_', '', cat_key) 
+        
+        st.markdown(f"#### {display_name}")
+        for i in range(0, len(probs), 3):
+            cols = st.columns(3)
+            for j in range(3):
+                if i + j < len(probs):
+                    prob = probs[i + j]
+                    sub_label = prob["hw_subtitle"].capitalize() if "hw_subtitle" in prob else prob.get('category', '').split(":")[-1].strip()
+                    if sub_label == display_name or not sub_label:
+                        sub_label = f"Problem {prob['id']}"
+                        
+                    with cols[j]:
+                        if st.button(f"**{sub_label}**\n({prob['id']})", key=f"btn_{prob['id']}", use_container_width=True):
+                            st.session_state.current_prob = prob
+                            st.session_state.page = "chat"
+                            if prob['id'] in st.session_state.chat_sessions:
+                                del st.session_state.chat_sessions[prob['id']]
+                            st.rerun()
+    st.markdown("---")
+
+# --- Page 2: Socratic Chat ---
+elif st.session_state.page == "chat":
+    prob = st.session_state.current_prob
+    p_id = prob['id']
+    if p_id not in st.session_state.grading_data: st.session_state.grading_data[p_id] = {'solved': set()}
+    solved = st.session_state.grading_data[p_id]['solved']
+    
+    top_cols = st.columns([1, 1])
+    
+    with top_cols[0]:
+        st.subheader(f"📌 {prob['category']}")
+        st.info(prob['statement'])
+        st.image(render_problem_diagram(prob), width=450)
+    
+    with top_cols[1]:
+        st.subheader("💬 Socratic Tutor")
+        chat_container = st.container(height=450)
+        
+        if p_id not in st.session_state.chat_sessions:
+            sys_prompt = (
+                f"You are the Engineering Tutor for {st.session_state.user_name} at TAMUCC. "
+                f"REFERENCE DATA: {prob['statement']}. "
+                "### CORE INSTRUCTIONS:\n"
+                "1. LITERAL INTERPRETATION: Use the provided REFERENCE DATA as the absolute source of truth. "
+                "2. SOCRATIC METHOD: Never provide direct answers. Guide them with leading questions.\n"
+                "3. MATH: Render all formulas in LaTeX using $ symbols."
+            )
+            try:
+                model = get_gemini_model(sys_prompt)
+                st.session_state.chat_sessions[p_id] = model.start_chat(history=[])
+            except Exception as e:
+                st.error(f"Initialization Error: {e}")
+
+        with chat_container:
+            if p_id in st.session_state.chat_sessions:
+                for message in st.session_state.chat_sessions[p_id].history:
+                    with st.chat_message("assistant" if message.role == "model" else "user"):
+                        st.markdown(message.parts[0].text)
+
+                if not st.session_state.chat_sessions[p_id].history:
+                    st.write(f"👋 **Tutor Ready.** Hello {st.session_state.user_name}. How should we begin analyzing this {prob.get('category', 'problem')}?")
+
+        if user_input := st.chat_input("Your analysis..."):
+            for target, val in prob['targets'].items():
+                if target not in solved and check_numeric_match(user_input, val):
+                    st.session_state.grading_data[p_id]['solved'].add(target)
+                    st.toast(f"✅ Correct value identified for {target}!", icon="🎯")
+            
+            if p_id in st.session_state.chat_sessions:
                 try:
-                    img = plt.imread(img_path_alt)
-                    ax.imshow(img)
-                    h, w = img.shape[:2]
-                    ax.set_xlim(0, w); ax.set_ylim(h, 0)
-                    found = True
-                except Exception:
-                    pass
+                    with st.spinner("Tutor is thinking..."):
+                        st.session_state.chat_sessions[p_id].send_message(user_input)
+                    st.rerun() 
+                except exceptions.ResourceExhausted:
+                    st.error("⚠️ System limit reached. Please wait 60 seconds.")
+                except Exception as e:
+                    st.error(f"Tutor Error: {e}")
 
-    # --- 3. Error Handling ---
-    if not found:
-        ax.text(0.5, 0.5, f"Diagram Not Found\nID: {pid}", color='red', ha='center', va='center')
-        ax.set_xlim(0, 1); ax.set_ylim(0, 1)
-
-    ax.axis('off')
+    st.markdown("---")
+    bot_col1, bot_col2 = st.columns([2, 1])
     
-    try:
-        plt.tight_layout()
-    except Exception:
-        plt.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05)
+    with bot_col1:
+        st.markdown("### 📝 Session Analysis")
+        feedback = st.text_area("Notes for Dr. Um:", placeholder="What was challenging about this problem?", height=100)
+        
+    with bot_col2:
+        st.write("Click below to finalize this session.")
+        if st.button("🚀 Submit Session", use_container_width=True):
+            history_text = ""
+            if p_id in st.session_state.chat_sessions:
+                for msg in st.session_state.chat_sessions[p_id].history:
+                    role = "Tutor" if msg.role == "model" else "Student"
+                    history_text += f"{role}: {msg.parts[0].text}\n"
+            
+            try:
+                with st.spinner("Analyzing mastery..."):
+                    report = analyze_and_send_report(st.session_state.user_name, prob['category'], history_text + feedback)
+                    st.session_state.last_report = report
+                    st.session_state.page = "report_view"
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Reporting Error: {e}")
+        
+        if st.button("🏠 Exit to Home", use_container_width=True):
+            st.session_state.page = "landing"
+            st.rerun()
 
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight')
-    plt.close(fig)
-    buf.seek(0)
-    return buf
-
-def render_lecture_visual(topic, params=None):
-    """Visualizes derivation components with a strictly centered origin."""
-    fig, ax = plt.subplots(figsize=(6, 6), dpi=150)
-    if params is None: params = {}
+# --- Page 3: Mastery Report View ---
+elif st.session_state.page == "report_view":
+    st.title("📊 Session Mastery Report")
+    st.info(f"Summary for {st.session_state.user_name}")
     
-    ax.axhline(0, color='black', lw=1.5, zorder=2)
-    ax.axvline(0, color='black', lw=1.5, zorder=2)
-    ax.grid(True, linestyle=':', alpha=0.6)
-    ax.set_aspect('equal')
-    
-    if topic == "Relative Motion":
-        vA = params.get('vA', [15, 5])
-        vB = params.get('vB', [10, -5])
-        v_rel_x, v_rel_y = vA[0] - vB[0], vA[1] - vB[1]
-        ax.quiver(0, 0, vA[0], vA[1], color='blue', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_A$')
-        ax.quiver(0, 0, vB[0], vB[1], color='red', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_B$')
-        ax.quiver(vB[0], vB[1], v_rel_x, v_rel_y, color='green', angles='xy', scale_units='xy', scale=1, label=r'$\vec{v}_{A/B}$')
-        limit = max(np.abs(vA + vB)) + 5
-        ax.set_xlim(-limit, limit); ax.set_ylim(-limit, limit)
-        ax.set_title(r"Relative Motion: $\vec{v}_A = \vec{v}_B + \vec{v}_{A/B}$")
-        ax.legend(loc='upper right')
-
-    elif topic == "Projectile Motion":
-        v0, angle = params.get('v0', 30), params.get('angle', 45)
-        g, theta = 9.81, np.radians(angle)
-        t_flight = 2 * v0 * np.sin(theta) / g
-        t = np.linspace(0, t_flight, 100)
-        x = v0 * np.cos(theta) * t
-        y = v0 * np.sin(theta) * t - 0.5 * g * t**2
-        ax.plot(x, y, 'g-', lw=2)
-        ax.set_xlim(-5, max(x)+5); ax.set_ylim(-5, max(y)+5)
-        ax.set_title(r"Projectile Trajectory Analysis")
-
-    elif topic == "Normal & Tangent":
-        v, rho = params.get('v', 20), params.get('rho', 50)
-        theta_arc = np.linspace(np.pi/4, 3*np.pi/4, 100)
-        ax.plot(rho * np.cos(theta_arc), rho * np.sin(theta_arc) - rho, 'k--', alpha=0.5)
-        ax.plot(0, 0, 'ko', markersize=8)
-        ax.quiver(0, 0, v, 0, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$v$ (Tangent)')
-        ax.quiver(0, 0, 0, -(v**2/rho), color='red', angles='xy', scale_units='xy', scale=1, label=r'$a_n = v^2/\rho$')
-        ax.set_xlim(-rho, rho); ax.set_ylim(-rho, rho/2)
-        ax.set_title(r"Normal and Tangential Acceleration")
-        ax.legend()
-
-    elif topic == "Polar Coordinates":
-        r, theta_deg = params.get('r', 20), params.get('theta', 45)
-        theta = np.radians(theta_deg)
-        x, y = r * np.cos(theta), r * np.sin(theta)
-        ax.plot([0, x], [0, y], 'k-o', lw=2)
-        ax.quiver(x, y, np.cos(theta)*5, np.sin(theta)*5, color='blue', angles='xy', scale_units='xy', scale=1, label=r'$e_r$')
-        ax.quiver(x, y, -np.sin(theta)*5, np.cos(theta)*5, color='red', angles='xy', scale_units='xy', scale=1, label=r'$e_\theta$')
-        ax.set_xlim(-r-10, r+10); ax.set_ylim(-r-10, r+10)
-        ax.set_title(r"Polar Coordinates: Radial & Transverse")
-        ax.legend()
-
-    try:
-        plt.tight_layout()
-    except Exception:
-        plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
-
-    buf = io.BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight')
-    plt.close(fig)
-    buf.seek(0)
-    return buf
+    if "last_report" in st.session_state:
+        st.markdown(st.session_state.last_report)
+    else:
+        st.warning("No report data found.")
+        
+    st.markdown("---")
+    if st.button("🏠 Return to Main Menu", use_container_width=True):
+        st.session_state.page = "landing"
+        st.rerun()
