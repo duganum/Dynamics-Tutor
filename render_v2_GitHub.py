@@ -21,7 +21,7 @@ def render_problem_diagram(prob):
 
     # --- 1. UNIQUE Procedural Statics Diagrams ---
     if pid.startswith("S_1"):
-        # Section S_1.1: Particle Equilibrium / Force Vectors (UNIQUE)
+        # Section S_1.1: Particle Equilibrium / Force Vectors
         if "S_1.1" in pid:
             ax.plot(0, 0, 'ko', markersize=10) 
             if pid == "S_1.1_1":
@@ -39,7 +39,7 @@ def render_problem_diagram(prob):
             ax.set_xlim(-2.5, 2.5); ax.set_ylim(-2.5, 2.5)
             found = True
         
-        # Section S_1.2: Simple Trusses (UNIQUE)
+        # Section S_1.2: Simple Trusses
         elif "S_1.2" in pid:
             if pid == "S_1.2_1":
                 pts = np.array([[0,0], [2,1], [4,0], [2,0], [0,0]])
@@ -53,37 +53,41 @@ def render_problem_diagram(prob):
             ax.set_xlim(-0.5, 4.5); ax.set_ylim(-0.5, 2.5)
             found = True
 
-        # Section S_1.3: Geometric Properties (UNIQUE Shapes)
+        # Section S_1.3: Geometric Properties (FIXED: Draws Shapes, not Beams)
         elif "S_1.3" in pid:
-            if pid == "S_1.3_1": # Rectangle
+            if pid == "S_1.3_1": # Rectangle Centroid
                 rect = plt.Rectangle((0, 0), 4, 6, color='gray', alpha=0.3)
                 ax.add_patch(rect); ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
                 ax.plot(2, 3, 'rx', markersize=10)
-            elif pid == "S_1.3_2": # Triangle
+            elif pid == "S_1.3_2": # Triangle Centroid
                 tri = plt.Polygon([[0,0], [4,0], [0,6]], color='gray', alpha=0.3)
                 ax.add_patch(tri); ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
                 ax.plot(1.33, 2, 'rx', markersize=10)
-            elif pid == "S_1.3_3": # Semicircle placeholder
+            elif pid == "S_1.3_3": # Semicircle Centroid
                 theta = np.linspace(0, np.pi, 100)
                 ax.fill(3*np.cos(theta), 3*np.sin(theta), color='gray', alpha=0.3)
                 ax.set_xlim(-4, 4); ax.set_ylim(-1, 4)
                 ax.plot(0, 1.27, 'rx', markersize=10)
             found = True
 
-        # Section S_1.4: Friction / Blocks (UNIQUE)
+        # Section S_1.4: Equilibrium (FIXED: Draws Log and Cantilever)
         elif "S_1.4" in pid:
-            ax.plot([-1, 5], [0, 0], 'k-', lw=2) 
-            if pid == "S_1.4_1":
-                ax.add_patch(plt.Rectangle((1, 0), 2, 1.2, color='gray', alpha=0.4))
-                ax.annotate('', xy=(3, 0.6), xytext=(4.5, 0.6), arrowprops=dict(arrowstyle='<-', color='red'))
-            elif pid == "S_1.4_2":
+            if pid == "S_1.4_1": # Person A/B carrying log
+                ax.plot([0, 6], [0.5, 0.5], 'brown', lw=10) 
+                ax.annotate('$F_A$', xy=(0, 0.5), xytext=(0, 1.5), arrowprops=dict(arrowstyle='<-', color='blue'))
+                ax.annotate('$F_B$', xy=(4, 0.5), xytext=(4, 1.5), arrowprops=dict(arrowstyle='<-', color='green'))
+                ax.annotate('W', xy=(3, 0.5), xytext=(3, -0.5), arrowprops=dict(arrowstyle='->', color='red'))
+                ax.set_xlim(-1, 7); ax.set_ylim(-1, 2.5)
+            elif pid == "S_1.4_2": # Cantilever Beam Moment
+                ax.plot([0, 3], [0, 0], 'k-', lw=6) 
+                ax.plot([0, 0], [-0.5, 0.5], 'k-', lw=4) 
+                ax.annotate('100 N', xy=(3, 0), xytext=(3, -1), arrowprops=dict(arrowstyle='->', color='red'))
+                ax.set_xlim(-0.5, 4); ax.set_ylim(-1.5, 1.5)
+            elif pid == "S_1.4_3": # Friction block on incline
                 ax.plot([0, 4], [0, 2], 'k-', lw=2)
-                ax.add_patch(plt.Rectangle((1, 0.5), 1.5, 0.8, angle=26, color='gray', alpha=0.4))
-            elif pid == "S_1.4_3":
-                ax.add_patch(plt.Rectangle((0.5, 0), 1.5, 1, color='gray', alpha=0.4))
-                ax.add_patch(plt.Rectangle((2.5, 0), 1.5, 1, color='gray', alpha=0.4))
-                ax.plot([2, 2.5], [0.5, 0.5], 'k--', lw=2)
-            ax.set_xlim(-0.5, 5.5); ax.set_ylim(-0.5, 3)
+                rect = plt.Rectangle((1, 0.5), 1.5, 0.8, angle=26, color='gray', alpha=0.4)
+                ax.add_patch(rect)
+                ax.set_xlim(-0.5, 5); ax.set_ylim(-0.5, 3)
             found = True
 
     # --- 2. Dynamics Image Loader ---
