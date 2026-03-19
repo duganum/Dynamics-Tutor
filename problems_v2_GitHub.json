@@ -185,7 +185,7 @@
     "hw_title": "HW 6",
     "hw_subtitle": "kinetics of particles-rectilinear motion",
     "category": "HW 6 (kinetics of particles-rectilinear motion)",
-    "statement": "A 60-kg woman holds a 9-kg package as she stands within an elevator which briefly accelerates upward at a rate of $g/4$. Determine the force $R$ which the elevator floor exerts on her feet and the lifting force $L$ which she exerts on the package during the acceleration interval. Use $g = 9.81\text{ m/s}^2$.",
+    "statement": "A 60-kg woman holds a 9-kg package as she stands within an elevator which briefly accelerates upward at a rate of $g/4$. Determine the force $R$ which the elevator floor exerts on her feet and the lifting force $L$ which she exerts on the package during the acceleration interval. Use $g = 9.81\\text{ m/s}^2$.",
     "targets": {
         "R": 846.1,
         "L": 110.4
@@ -306,14 +306,26 @@
       "e": 0.333
     },
     "required_units": ["unitless"]
+  },
+  {
+    "id": "K_2.6_1",
+    "category": "Rigid Body Kinematics (Rotation)",
+    "statement": "For the instant represented, point $B$ crosses the horizontal axis through point $O$ with a downward velocity $v = 0.6$ m/s. Determine the corresponding value of the angular velocity $\\omega_{OA}$ of link $OA$. Length $OA = 130$ mm, length $AB = 90$ mm, horizontal distance $OB = 180$ mm.",
+    "targets": { "omega_OA": 10.0 },
+    "required_units": ["rad/s"]
+  },
+  {
+    "id": "K_2.6_2",
+    "category": "Rigid Body Kinematics (Rotation)",
+    "statement": "The mass center $G$ of the car has a velocity of $40$ mi/hr at position $A$ and $1.52$ seconds later at $B$ has a velocity of $50$ mi/hr. The radius of curvature of the road at $B$ is $180$ ft. Calculate the angular velocity $\\omega$ of the car at $B$ and the average angular velocity $\\omega_{av}$ of the car between $A$ and $B$. Initial angle is $30^{\\circ}$ from vertical at $A$.",
+    "targets": { "omega_B": 0.407, "omega_av": 0.344 },
+    "required_units": ["rad/sec"]
+  },
+  {
+    "id": "K_2.6_3",
+    "category": "Rigid Body Kinematics (Rotation)",
+    "statement": "The rotating arm starts from rest and acquires a rotational speed $N = 600$ rev/min in $2$ seconds with constant angular acceleration. Find the time $t$ after starting before the acceleration vector of end $P$ (at radius $6''$) makes an angle of $45^{\\circ}$ with the arm $OP$.",
+    "targets": { "t": 0.1784 },
+    "required_units": ["s"]
   }
 ]
-
-
-
-
-
-
-
-
-
