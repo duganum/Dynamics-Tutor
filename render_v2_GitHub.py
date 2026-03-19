@@ -7,7 +7,7 @@ import re
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    FIXED: Dynamic folder discovery to handle irregular spacing in HW folder names.
+    FIXED: Restored correct HW 11 filename mapping (6, 16, 71).
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -37,7 +37,7 @@ def render_problem_diagram(prob):
     if not found:
         category = str(prob.get("category", "")).lower()
         
-        # Extract numeric suffix (e.g., HW7_67 -> 67)
+        # Determine Numeric Filename
         if "_" in pid: image_number = pid.split("_")[-1]
         elif "-" in pid: image_number = pid.split("-")[-1]
         else:
@@ -47,24 +47,26 @@ def render_problem_diagram(prob):
         image_filename = f"{image_number}.png"
         target_hw = None
         
-        # Determine which HW prefix to search for
-        if "curvilinear" in category or "hw7" in pid.lower().replace(" ", ""): target_hw = "HW 7"
+        # Mapping Logic & HW 11 Overrides
+        if "rotation" in category or "rigid" in category or "hw11" in pid.lower().replace(" ", "") or pid.startswith("K_2.6"):
+            target_hw = "HW 11"
+            if pid.endswith("_1"): image_filename = "71.png"
+            elif pid.endswith("_2"): image_filename = "6.png"
+            elif pid.endswith("_3"): image_filename = "16.png"
+        elif "curvilinear" in category or "hw7" in pid.lower().replace(" ", ""): target_hw = "HW 7"
         elif "rectilinear" in category or "hw6" in pid.lower().replace(" ", ""): target_hw = "HW 6"
         elif "impact" in category or "hw10" in pid.lower().replace(" ", ""): target_hw = "HW 10"
         elif "momentum" in category or "impulse" in category or "hw9" in pid.lower().replace(" ", ""): target_hw = "HW 9"
         elif "work" in category or "energy" in category or "hw8" in pid.lower().replace(" ", ""): target_hw = "HW 8"
-        elif "rotation" in category or "rigid" in category or "hw11" in pid.lower().replace(" ", ""): target_hw = "HW 11"
 
         paths_to_try = []
 
-        # DYNAMIC FOLDER DISCOVERY: Look for a folder starting with "HW X"
+        # DYNAMIC FOLDER DISCOVERY
         if target_hw and os.path.exists('images'):
             all_folders = [f for f in os.listdir('images') if os.path.isdir(os.path.join('images', f))]
             for folder in all_folders:
                 if folder.startswith(target_hw):
-                    # Check the triple-nested path
                     paths_to_try.append(os.path.join('images', folder, 'images', image_filename))
-                    # Check the single-nested path
                     paths_to_try.append(os.path.join('images', folder, image_filename))
 
         # Absolute Fallbacks
@@ -85,8 +87,7 @@ def render_problem_diagram(prob):
                 except: continue
 
     if not found:
-        # Detailed error message to verify exactly where it looked
-        ax.text(0.5, 0.5, f"Not Found: {image_filename}\nID: {pid}\nHW Ref: {target_hw}", color='red', ha='center', va='center', fontsize=7)
+        ax.text(0.5, 0.5, f"Not Found: {image_filename}\nID: {pid}", color='red', ha='center', va='center', fontsize=7)
         ax.set_xlim(0, 1); ax.set_ylim(0, 1)
 
     ax.axis('off')
