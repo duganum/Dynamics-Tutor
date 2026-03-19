@@ -127,9 +127,9 @@ def render_problem_diagram(prob):
         if "K_2.6" in pid or "rotation" in category or "rigid" in category:
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
             # Specific mappings for requested rigid body problems
-            if "2.6_1" in pid: image_filename = "71.png"
+            if "2.6_1" in pid: image_filename = "18.png"
             elif "2.6_2" in pid: image_filename = "6.png"
-            elif "2.6_3" in pid: image_filename = "18.png"
+            elif "2.6_3" in pid: image_filename = "16.png"
             else: image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
         elif "impact" in category or pid in ["239", "243", "249", "252"]:
             folder_name = "HW 10 (Impact)"
