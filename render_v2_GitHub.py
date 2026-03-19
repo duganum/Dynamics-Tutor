@@ -98,9 +98,58 @@ def render_problem_diagram(prob):
     return buf
 
 def render_lecture_visual(topic, params=None):
-    fig, ax = plt.subplots(figsize=(6, 6), dpi=150)
-    ax.axhline(0, color='black', lw=1.5); ax.axvline(0, color='black', lw=1.5)
-    ax.grid(True, linestyle=':', alpha=0.6); ax.set_aspect('equal')
+    """
+    Generates dynamic physics plots for the Interactive Lectures.
+    Calculates trajectories and vectors based on user-provided slider params.
+    """
+    if params is None: params = {}
+    
+    fig, ax = plt.subplots(figsize=(6, 4), dpi=150)
+    topic_clean = topic.lower().strip()
+
+    # --- 1. Projectile Motion ---
+    if "projectile" in topic_clean:
+        v0 = params.get("v0", 20.0)
+        angle = np.radians(params.get("angle", 45))
+        g = params.get("g", 9.81)
+        t_total = (2 * v0 * np.sin(angle)) / g if g > 0 else 0
+        t = np.linspace(0, t_total, 100) if t_total > 0 else [0]
+        x = v0 * np.cos(angle) * t
+        y = v0 * np.sin(angle) * t - 0.5 * g * t**2
+        ax.plot(x, y, 'b-', lw=2)
+        ax.set_title("Projectile Trajectory")
+        ax.set_xlabel("x (m)"); ax.set_ylabel("y (m)")
+        if len(x) > 1:
+            ax.set_xlim(0, max(x)*1.1); ax.set_ylim(0, max(y)*1.2)
+
+    # --- 2. Polar Coordinates ---
+    elif "polar" in topic_clean:
+        r_val = params.get("r", 5.0)
+        theta_val = np.radians(30)
+        px, py = r_val * np.cos(theta_val), r_val * np.sin(theta_val)
+        ax.quiver(px, py, np.cos(theta_val), np.sin(theta_val), color='red', scale=5, label="$e_r$")
+        ax.quiver(px, py, -np.sin(theta_val), np.cos(theta_val), color='green', scale=5, label="$e_\\theta$")
+        ax.plot([0, px], [0, py], 'k--', alpha=0.5)
+        ax.plot(px, py, 'ro', markersize=10)
+        ax.set_xlim(-2, 12); ax.set_ylim(-2, 12)
+        ax.set_title("Polar Vectors")
+        ax.legend()
+
+    # --- 3. Normal & Tangent ---
+    elif "normal" in topic_clean or "tangent" in topic_clean:
+        v, rho, at = params.get("v", 50.0), params.get("rho", 100.0), params.get("at", 2.0)
+        an = (v**2) / rho if rho > 0 else 0
+        arc = np.linspace(0, np.pi/2, 100)
+        ax.plot(rho * np.cos(arc), rho * np.sin(arc), 'k--', alpha=0.3)
+        px, py = rho * np.cos(np.pi/4), rho * np.sin(np.pi/4)
+        ax.quiver(px, py, -np.cos(np.pi/4), -np.sin(np.pi/4), color='red', scale=an*0.5, label="$a_n$")
+        ax.quiver(px, py, -np.sin(np.pi/4), np.cos(np.pi/4), color='green', scale=at*5, label="$a_t$")
+        ax.plot(px, py, 'bo', markersize=10)
+        ax.set_title("Normal/Tangential Acceleration")
+        ax.legend()
+
+    ax.axhline(0, color='black', lw=1); ax.axvline(0, color='black', lw=1)
+    ax.grid(True, linestyle=':', alpha=0.6)
     buf = io.BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
     plt.close(fig)
