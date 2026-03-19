@@ -129,7 +129,7 @@ def render_problem_diagram(prob):
             # Specific mappings for requested rigid body problems
             if "2.6_1" in pid: image_filename = "71.png"
             elif "2.6_2" in pid: image_filename = "6.png"
-            elif "2.6_3" in pid: image_filename = "16.png"
+            elif "2.6_3" in pid: image_filename = "18.png"
             else: image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
         elif "impact" in category or pid in ["239", "243", "249", "252"]:
             folder_name = "HW 10 (Impact)"
@@ -142,7 +142,7 @@ def render_problem_diagram(prob):
             image_filename = f"{pid}.png"
         elif hw_title and hw_subtitle:
             if hw_title == "HW 7":
-                folder_name = f"HW 7  ({hw_subtitle})" 
+                folder_name = f"HW 7 ({hw_subtitle})" 
             else:
                 folder_name = f"{hw_title} ({hw_subtitle})"
             image_filename = f"{pid.split('_')[-1]}.png"
