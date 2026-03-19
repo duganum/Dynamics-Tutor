@@ -198,7 +198,7 @@ elif st.session_state.page == "report_view":
         st.session_state.page = "landing"
         st.rerun()
 
-# --- Page 4: Interactive Lecture (FIXED: Added Polar and Normal/Tangent Knobs) ---
+# --- Page 4: Interactive Lecture (REVISED: Neutral Sliders) ---
 elif st.session_state.page == "lecture":
     st.title(f"🎓 Interactive Lecture: {st.session_state.lecture_topic}")
     
@@ -211,23 +211,23 @@ elif st.session_state.page == "lecture":
         params = {}
         
         if "projectile" in topic_clean:
-            v0 = st.slider("Initial Velocity ($v_0$)", 1.0, 50.0, 20.0, step=1.0)
-            angle = st.slider("Launch Angle (θ)", 0, 90, 45, step=5)
-            gravity = st.slider("Gravity ($g$)", 1.0, 20.0, 9.81, step=0.1)
+            v0 = st.slider("Initial Velocity ($v_0$)", 0.0, 100.0, 50.0)
+            angle = st.slider("Launch Angle (θ)", -90, 90, 0, step=5)
+            gravity = st.slider("Gravity ($g$)", 0.0, 20.0, 10.0)
             params = {"v0": v0, "angle": angle, "g": gravity}
         elif "normal" in topic_clean or "tangent" in topic_clean:
-            v = st.slider("Speed ($v$)", 1.0, 100.0, 50.0)
-            rho = st.slider("Radius of Curvature (ρ)", 10.0, 500.0, 100.0)
-            at = st.slider("Tangential Accel ($a_t$)", -10.0, 10.0, 2.0)
+            v = st.slider("Speed ($v$)", 0.0, 100.0, 50.0)
+            rho = st.slider("Radius of Curvature (ρ)", 10.0, 500.0, 255.0)
+            at = st.slider("Tangential Accel ($a_t$)", -10.0, 10.0, 0.0)
             params = {"v": v, "rho": rho, "at": at}
         elif "polar" in topic_clean:
-            r = st.slider("Radius ($r$)", 0.1, 10.0, 5.0)
-            rdot = st.slider("Radial Velocity ($\dot{r}$)", -10.0, 10.0, 2.0)
-            theta_dot = st.slider("Angular Velocity ($\dot{θ}$)", 0.0, 10.0, 1.5)
+            r = st.slider("Radius ($r$)", 0.0, 10.0, 5.0)
+            rdot = st.slider("Radial Velocity ($\dot{r}$)", -10.0, 10.0, 0.0)
+            theta_dot = st.slider("Angular Velocity ($\dot{θ}$)", -5.0, 5.0, 0.0)
             params = {"r": r, "rdot": rdot, "theta_dot": theta_dot}
         elif "relative" in topic_clean:
-            va = st.slider("Velocity A ($v_A$)", -30.0, 30.0, 10.0)
-            vb = st.slider("Velocity B ($v_B$)", -30.0, 30.0, -15.0)
+            va = st.slider("Velocity A ($v_A$)", -50.0, 50.0, 0.0)
+            vb = st.slider("Velocity B ($v_B$)", -50.0, 50.0, 0.0)
             params = {"vA": va, "vB": vb}
         else:
             st.info(f"Interactive knobs for '{st.session_state.lecture_topic}' are under development.")
