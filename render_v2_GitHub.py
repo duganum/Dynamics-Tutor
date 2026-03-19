@@ -101,6 +101,7 @@ def render_lecture_visual(topic, params=None):
     """
     Generates dynamic physics plots for the Interactive Lectures.
     Calculates trajectories and vectors based on user-provided slider params.
+    FIXED: Using 'angles=xy, scale_units=xy, scale=1' so arrows grow with values.
     """
     if params is None: params = {}
     
@@ -109,43 +110,66 @@ def render_lecture_visual(topic, params=None):
 
     # --- 1. Projectile Motion ---
     if "projectile" in topic_clean:
-        v0 = params.get("v0", 20.0)
-        angle = np.radians(params.get("angle", 45))
-        g = params.get("g", 9.81)
-        t_total = (2 * v0 * np.sin(angle)) / g if g > 0 else 0
-        t = np.linspace(0, t_total, 100) if t_total > 0 else [0]
+        v0 = params.get("v0", 50.0)
+        angle = np.radians(params.get("angle", 0))
+        g = params.get("g", 10.0)
+        
+        t_total = (2 * v0 * np.sin(angle)) / g if g > 0 and angle > 0 else 2.0
+        t = np.linspace(0, t_total, 100)
         x = v0 * np.cos(angle) * t
         y = v0 * np.sin(angle) * t - 0.5 * g * t**2
+        
         ax.plot(x, y, 'b-', lw=2)
         ax.set_title("Projectile Trajectory")
         ax.set_xlabel("x (m)"); ax.set_ylabel("y (m)")
-        if len(x) > 1:
-            ax.set_xlim(0, max(x)*1.1); ax.set_ylim(0, max(y)*1.2)
+        ax.set_xlim(min(0, np.min(x)), max(10, np.max(x))*1.1 if len(x)>1 else 10)
+        ax.set_ylim(min(-5, np.min(y)), max(10, np.max(y))*1.2 if len(y)>1 else 10)
 
-    # --- 2. Polar Coordinates ---
-    elif "polar" in topic_clean:
-        r_val = params.get("r", 5.0)
-        theta_val = np.radians(30)
-        px, py = r_val * np.cos(theta_val), r_val * np.sin(theta_val)
-        ax.quiver(px, py, np.cos(theta_val), np.sin(theta_val), color='red', scale=5, label="$e_r$")
-        ax.quiver(px, py, -np.sin(theta_val), np.cos(theta_val), color='green', scale=5, label="$e_\\theta$")
-        ax.plot([0, px], [0, py], 'k--', alpha=0.5)
-        ax.plot(px, py, 'ro', markersize=10)
-        ax.set_xlim(-2, 12); ax.set_ylim(-2, 12)
-        ax.set_title("Polar Vectors")
+    # --- 2. Normal & Tangent ---
+    elif "normal" in topic_clean or "tangent" in topic_clean:
+        v, rho, at = params.get("v", 50.0), params.get("rho", 255.0), params.get("at", 0.0)
+        an = (v**2) / rho if rho > 0 else 0
+        
+        theta_path = np.linspace(0, np.pi/2, 100)
+        ax.plot(rho * np.cos(theta_path), rho * np.sin(theta_path), 'k--', alpha=0.3)
+        
+        px, py = rho * np.cos(np.pi/4), rho * np.sin(np.pi/4)
+        ax.plot(px, py, 'bo', markersize=10)
+        
+        # a_n points toward center (-cos, -sin)
+        ax.quiver(px, py, -an*np.cos(np.pi/4), -an*np.sin(np.pi/4), 
+                  color='red', angles='xy', scale_units='xy', scale=1, label="$a_n$")
+        
+        # a_t points along tangent (-sin, cos)
+        ax.quiver(px, py, -at*np.sin(np.pi/4), at*np.cos(np.pi/4), 
+                  color='green', angles='xy', scale_units='xy', scale=1, label="$a_t$")
+        
+        ax.set_title(f"Acceleration Vectors ($a_n = {an:.1f}$)")
+        ax.set_xlim(0, rho*1.2); ax.set_ylim(0, rho*1.2)
         ax.legend()
 
-    # --- 3. Normal & Tangent ---
-    elif "normal" in topic_clean or "tangent" in topic_clean:
-        v, rho, at = params.get("v", 50.0), params.get("rho", 100.0), params.get("at", 2.0)
-        an = (v**2) / rho if rho > 0 else 0
-        arc = np.linspace(0, np.pi/2, 100)
-        ax.plot(rho * np.cos(arc), rho * np.sin(arc), 'k--', alpha=0.3)
-        px, py = rho * np.cos(np.pi/4), rho * np.sin(np.pi/4)
-        ax.quiver(px, py, -np.cos(np.pi/4), -np.sin(np.pi/4), color='red', scale=an*0.5, label="$a_n$")
-        ax.quiver(px, py, -np.sin(np.pi/4), np.cos(np.pi/4), color='green', scale=at*5, label="$a_t$")
-        ax.plot(px, py, 'bo', markersize=10)
-        ax.set_title("Normal/Tangential Acceleration")
+    # --- 3. Polar Coordinates ---
+    elif "polar" in topic_clean:
+        r_val = params.get("r", 5.0)
+        rdot = params.get("rdot", 0.0)
+        tdot = params.get("theta_dot", 0.0)
+        
+        theta_val = np.radians(45)
+        px, py = r_val * np.cos(theta_val), r_val * np.sin(theta_val)
+        
+        # Radial velocity vector
+        ax.quiver(px, py, rdot*np.cos(theta_val), rdot*np.sin(theta_val), 
+                  color='red', angles='xy', scale_units='xy', scale=1, label="$\dot{r}e_r$")
+        
+        # Transverse velocity vector (r * theta_dot)
+        v_theta = r_val * tdot
+        ax.quiver(px, py, -v_theta*np.sin(theta_val), v_theta*np.cos(theta_val), 
+                  color='green', angles='xy', scale_units='xy', scale=1, label="$r\dot{\\theta}e_\\theta$")
+        
+        ax.plot([0, px], [0, py], 'k--', alpha=0.5)
+        ax.plot(px, py, 'ro', markersize=10)
+        ax.set_xlim(-15, 15); ax.set_ylim(-15, 15)
+        ax.set_title("Velocity Components (Polar)")
         ax.legend()
 
     ax.axhline(0, color='black', lw=1); ax.axvline(0, color='black', lw=1)
