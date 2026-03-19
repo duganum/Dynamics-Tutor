@@ -198,21 +198,40 @@ elif st.session_state.page == "report_view":
         st.session_state.page = "landing"
         st.rerun()
 
-# --- Page 4: Interactive Lecture (FIXED: Added this block) ---
+# --- Page 4: Interactive Lecture ---
 elif st.session_state.page == "lecture":
     st.title(f"🎓 Interactive Lecture: {st.session_state.lecture_topic}")
+    
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.subheader("Visual Overview")
-        st.image(render_lecture_visual(st.session_state.lecture_topic), use_container_width=True)
+        st.subheader("⚙️ Simulation Controls")
+        
+        params = {}
+        if st.session_state.lecture_topic == "Projectile Motion":
+            v0 = st.slider("Initial Velocity ($v_0$)", 1.0, 50.0, 20.0, step=1.0)
+            angle = st.slider("Launch Angle (θ)", 0, 90, 45, step=5)
+            gravity = st.slider("Gravity ($g$)", 1.0, 20.0, 9.81, step=0.1)
+            params = {"v0": v0, "angle": angle, "g": gravity}
+        elif st.session_state.lecture_topic == "Relative Motion":
+            va = st.slider("Velocity A ($v_A$)", -30.0, 30.0, 10.0)
+            vb = st.slider("Velocity B ($v_B$)", -30.0, 30.0, -15.0)
+            params = {"vA": va, "vB": vb}
+        else:
+            st.info("Interactive knobs for this topic are under development.")
+
+        st.markdown("### 📈 Visual Overview")
+        st.image(render_lecture_visual(st.session_state.lecture_topic, params), use_container_width=True)
         
     with col2:
-        st.subheader("Socratic Discussion")
+        st.subheader("💬 Socratic Discussion")
         lecture_chat = st.container(height=500)
         
         if st.session_state.lecture_session is None:
-            lec_prompt = f"You are a Socratic Professor teaching {st.session_state.lecture_topic}. Start with a fundamental question."
+            lec_prompt = (
+                f"You are a Socratic Professor teaching {st.session_state.lecture_topic}. "
+                "Guide the student by asking conceptual questions. Refer to their simulation parameters if mentioned."
+            )
             model = get_gemini_model(lec_prompt)
             st.session_state.lecture_session = model.start_chat(history=[])
 
@@ -221,7 +240,7 @@ elif st.session_state.page == "lecture":
                 with st.chat_message("assistant" if message.role == "model" else "user"):
                     st.markdown(message.parts[0].text)
             if not st.session_state.lecture_session.history:
-                st.write(f"Welcome to the lecture on **{st.session_state.lecture_topic}**. Let's begin...")
+                st.write(f"Welcome to the lecture on **{st.session_state.lecture_topic}**. Adjust the sliders and let's begin...")
 
         if lec_input := st.chat_input("Discuss the topic..."):
             st.session_state.lecture_session.send_message(lec_input)
