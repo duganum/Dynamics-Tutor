@@ -21,80 +21,98 @@ def render_problem_diagram(prob):
 
     # --- 1. UNIQUE Procedural Statics Diagrams ---
     if pid.startswith("S_1"):
-        
-        # Section S_1.1: Particle Equilibrium
+        # Section S_1.1: Particle Equilibrium / Force Vectors
         if "S_1.1" in pid:
             ax.plot(0, 0, 'ko', markersize=10) 
-            if "1.1_1" in pid:
-                # F1 goes perfectly straight UP
-                ax.annotate('F1', xy=(0, 2), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-                ax.annotate('F2', xy=(2, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-                ax.annotate('W', xy=(0, -2), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-            elif "1.1_2" in pid:
-                # F1 goes perfectly straight UP
-                ax.annotate('F1', xy=(0, 2), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-                ax.annotate('F2', xy=(-2, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-                ax.annotate('W', xy=(0, -2), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-            elif "1.1_3" in pid:
-                ax.annotate('F1', xy=(1.5, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
-                ax.annotate('F2', xy=(-1.5, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-                ax.annotate('W', xy=(0, -2), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+            if pid == "S_1.1_1":
+                # PERFECTLY STRAIGHT UP ARROW (Separate text from arrow to avoid bounding box skew)
+                ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+                ax.text(0.1, 1.5, 'F1', color='blue')
+                ax.annotate('', xy=(1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
+                ax.text(1.5, 0.1, 'F2', color='green')
+                ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+                ax.text(0.1, -1.5, 'W', color='red')
+            elif pid == "S_1.1_2":
+                # PERFECTLY STRAIGHT UP ARROW
+                ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+                ax.text(0.1, 1.5, 'F1', color='blue')
+                ax.annotate('', xy=(-1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
+                ax.text(-1.5, 0.1, 'F2', color='green')
+                ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+                ax.text(0.1, -1.5, 'W', color='red')
+            elif pid == "S_1.1_3":
+                ax.annotate('', xy=(1.5, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+                ax.text(1.6, 1.6, 'F1', color='blue')
+                ax.annotate('', xy=(-1.5, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
+                ax.text(-1.7, 1.6, 'F2', color='green')
+                ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+                ax.text(0.1, -1.5, 'W', color='red')
             ax.set_xlim(-2.5, 2.5); ax.set_ylim(-2.5, 2.5)
             found = True
         
         # Section S_1.2: Simple Trusses
         elif "S_1.2" in pid:
-            if "1.2_1" in pid:
+            if pid == "S_1.2_1":
                 pts = np.array([[0,0], [2,1], [4,0], [2,0], [0,0]])
                 ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([2,2], [0,1], 'k-', lw=2)
-            elif "1.2_2" in pid:
+            elif pid == "S_1.2_2":
                 pts = np.array([[0,0], [1,1.5], [2,1.5], [3,0], [0,0]])
                 ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([1,2], [1.5,0], 'k-', lw=2)
-            elif "1.2_3" in pid:
+            elif pid == "S_1.2_3":
                 pts = np.array([[0,0], [0,2], [2,0], [0,0]])
                 ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([0,1], [1,0], 'k-', lw=2)
             ax.set_xlim(-0.5, 4.5); ax.set_ylim(-0.5, 2.5)
             found = True
 
-        # Section S_1.3: Geometric Properties
+        # Section S_1.3: Geometric Properties (Shapes)
         elif "S_1.3" in pid:
-            if "1.3_1" in pid: # Rectangle
+            if pid == "S_1.3_1": # Rectangle Centroid
                 rect = plt.Rectangle((0, 0), 4, 6, color='gray', alpha=0.3)
-                ax.add_patch(rect)
+                ax.add_patch(rect); ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
                 ax.plot(2, 3, 'rx', markersize=10)
-                ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
-            elif "1.3_2" in pid: # Triangle
+            elif pid == "S_1.3_2": # Triangle Centroid
                 tri = plt.Polygon([[0,0], [4,0], [0,6]], color='gray', alpha=0.3)
-                ax.add_patch(tri)
+                ax.add_patch(tri); ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
                 ax.plot(1.33, 2, 'rx', markersize=10)
-                ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
-            elif "1.3_3" in pid: # Circle
-                circle = plt.Circle((0, 0), 3, color='gray', alpha=0.3)
-                ax.add_patch(circle)
-                ax.plot(0, 0, 'rx', markersize=10)
-                ax.set_xlim(-4, 4); ax.set_ylim(-4, 4)
+            elif pid == "S_1.3_3": # Semicircle Centroid
+                theta = np.linspace(0, np.pi, 100)
+                ax.fill(3*np.cos(theta), 3*np.sin(theta), color='gray', alpha=0.3)
+                ax.set_xlim(-4, 4); ax.set_ylim(-1, 4)
+                ax.plot(0, 1.27, 'rx', markersize=10)
             found = True
 
-        # Section S_1.4: Equilibrium
+        # Section S_1.4: Equilibrium (FIXED to match problem text perfectly)
         elif "S_1.4" in pid:
-            if "1.4_1" in pid: # Flat Block
-                ax.plot([-1, 5], [0, 0], 'k-', lw=2) 
-                ax.add_patch(plt.Rectangle((1, 0), 2, 1.2, color='gray', alpha=0.4))
-                ax.annotate('P', xy=(4.5, 0.6), xytext=(3, 0.6), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-                ax.annotate('N', xy=(2, 1.5), xytext=(2, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2)) # Straight UP
-                ax.annotate('W', xy=(2, -1), xytext=(2, 0.6), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-                ax.set_xlim(-0.5, 5); ax.set_ylim(-1.5, 2)
-            elif "1.4_2" in pid: # Cantilever Beam
-                ax.plot([0, 0], [-1, 1], 'k-', lw=4) 
-                ax.plot([0, 3], [0, 0], 'k-', lw=6) 
-                ax.annotate('100 N', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
-                ax.set_xlim(-0.5, 4); ax.set_ylim(-2, 1.5)
-            elif "1.4_3" in pid: # Person A & B Log
-                ax.plot([0, 6], [0, 0], color='brown', lw=8) 
-                ax.annotate('$F_A$', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2)) # Straight UP
-                ax.annotate('$F_B$', xy=(4, 1.5), xytext=(4, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2)) # Straight UP
-                ax.annotate('W', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+            if pid == "S_1.4_1": # Rigid bar balanced on a pivot
+                ax.plot([0, 6], [1, 1], 'k-', lw=4) # Bar
+                ax.add_patch(plt.Polygon([[1.5, 0], [2.5, 0], [2, 1]], color='gray')) # Pivot triangle
+                ax.plot([-1, 7], [0, 0], 'k-', lw=2) # Ground
+                # 10N Force Left
+                ax.annotate('', xy=(0, 0), xytext=(0, 1), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+                ax.text(-0.8, 0.5, '10 N', color='red')
+                # Force F Right
+                ax.annotate('', xy=(6, 0), xytext=(6, 1), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+                ax.text(6.2, 0.5, 'F', color='blue')
+                ax.set_xlim(-1, 7); ax.set_ylim(-1, 3)
+                
+            elif pid == "S_1.4_2": # Two people carrying log
+                ax.plot([0, 6], [0, 0], color='brown', lw=10) # Log
+                # Straight UP vectors
+                ax.annotate('', xy=(0, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue', lw=2))
+                ax.text(0.1, 1.6, 'F_A', color='blue')
+                ax.annotate('', xy=(4, 1.5), xytext=(4, 0), arrowprops=dict(arrowstyle='->', color='green', lw=2))
+                ax.text(4.1, 1.6, 'F_B', color='green')
+                # Straight DOWN weight
+                ax.annotate('', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+                ax.text(3.2, -1.0, '60 kg', color='red')
                 ax.set_xlim(-1, 7); ax.set_ylim(-2, 2.5)
+                
+            elif pid == "S_1.4_3": # Cantilever Beam Moment
+                ax.plot([0, 0], [-1, 1], 'k-', lw=4) # Wall
+                ax.plot([0, 3], [0, 0], 'k-', lw=6) # Beam
+                ax.annotate('', xy=(3, -1.5), xytext=(3, 0), arrowprops=dict(arrowstyle='->', color='red', lw=2))
+                ax.text(3.2, -1.0, 'P', color='red')
+                ax.set_xlim(-0.5, 4); ax.set_ylim(-2, 1.5)
             found = True
 
     # --- 2. Dynamics Image Loader ---
