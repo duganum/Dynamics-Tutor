@@ -7,7 +7,7 @@ import re
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    FIXED: Optimized search for HW 7-67 and numeric extraction.
+    FIXED: Specific double-nested path handling for HW 7 and HW 6.
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -19,7 +19,7 @@ def render_problem_diagram(prob):
     ax.set_aspect('equal')
     found = False
 
-    # --- 1. Procedural Statics Diagrams ---
+    # --- 1. Procedural Statics Diagrams (S_1.1 to S_1.4) ---
     if pid.startswith("S_1"):
         if pid == "S_1.1_1":
             ax.plot(0, 0, 'ko', markersize=8)
@@ -35,33 +35,27 @@ def render_problem_diagram(prob):
         elif pid == "S_1.4_1":
             ax.plot([0, 3], [0, 0], color='gray', lw=8); ax.plot([0, 0], [-1, 1], color='black', lw=4)
             found = True
-        elif pid == "S_1.4_2":
-            ax.plot([0, 6], [0, 0], color='brown', lw=10)
-            found = True
 
     # --- 2. Dynamics Image Loader ---
     if not found:
         category = str(prob.get("category", "")).lower()
-        # Clean ID for root search (e.g., K_2.5_1 -> k251)
-        clean_pid = pid.replace("_", "").replace(".", "").replace("-", "").lower()
-        image_filename = f"{clean_pid}.png"
+        # Extract the last number from the ID (e.g., "HW7_67" or "HW 7-67" -> "67")
+        match = re.search(r'(\d+)$', pid)
+        num_suffix = match.group(1) if match else pid
+        
+        image_filename = f"{num_suffix}.png"
         folder_name = None
 
-        # Determine Folder and Numeric Filename (e.g., HW 7-67 -> 67.png)
-        match = re.search(r'(\d+)$', pid)
-        num_only = match.group(1) if match else None
-
+        # ROUTING LOGIC: Match specific folder names in your repo
         if "rotation" in category or "rigid" in category or pid.startswith("K_2.6"):
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
             if pid.endswith("_1"): image_filename = "71.png"
             elif pid.endswith("_2"): image_filename = "6.png"
             elif pid.endswith("_3"): image_filename = "16.png"
-        elif "curvilinear" in category or "hw7" in clean_pid:
+        elif "curvilinear" in category or "hw7" in pid.lower():
             folder_name = "HW 7 (kinetics of particles-curvilinear motion)"
-            if num_only: image_filename = f"{num_only}.png"
-        elif "rectilinear" in category or "hw6" in clean_pid:
+        elif "rectilinear" in category or "hw6" in pid.lower():
             folder_name = "HW 6 (kinetics of particles-rectilinear motion)"
-            if num_only: image_filename = f"{num_only}.png"
         elif "impact" in category:
             folder_name = "HW 10 (Impact)"
         elif "momentum" in category or "impulse" in category:
@@ -69,15 +63,19 @@ def render_problem_diagram(prob):
         elif "work" in category or "energy" in category:
             folder_name = "HW 8 (work and energy)"
 
-        # SEARCH MULTIPLE PATHS
+        # SEARCH PATHS: Specifically checking the double-nested /images/ subfolder
         paths_to_try = []
         if folder_name:
+            # Path 1: images/Folder/images/67.png (Based on your screenshot)
             paths_to_try.append(os.path.join('images', folder_name, 'images', image_filename))
+            # Path 2: images/Folder/67.png
             paths_to_try.append(os.path.join('images', folder_name, image_filename))
         
-        # Always try root as fallback
-        paths_to_try.append(os.path.join('images', image_filename))
-        paths_to_try.append(os.path.join('images', f"{pid}.png")) # Literal ID check
+        # Fallback 3: images/k221.png style
+        clean_pid = pid.replace("_", "").replace(".", "").replace("-", "").lower()
+        paths_to_try.append(os.path.join('images', f"{clean_pid}.png"))
+        # Fallback 4: Literal ID in root
+        paths_to_try.append(os.path.join('images', f"{pid}.png"))
 
         for img_path in paths_to_try:
             if os.path.exists(img_path):
@@ -91,7 +89,7 @@ def render_problem_diagram(prob):
                 except: continue
 
     if not found:
-        ax.text(0.5, 0.5, f"Diagram Not Found\nID: {pid}\nSearching: {image_filename}", color='red', ha='center', va='center', fontsize=8)
+        ax.text(0.5, 0.5, f"Diagram Not Found\nID: {pid}\nTried: {image_filename}", color='red', ha='center', va='center', fontsize=8)
         ax.set_xlim(0, 1); ax.set_ylim(0, 1)
 
     ax.axis('off')
