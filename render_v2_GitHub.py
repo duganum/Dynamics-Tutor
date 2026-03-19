@@ -21,53 +21,69 @@ def render_problem_diagram(prob):
 
     # --- 1. UNIQUE Procedural Statics Diagrams ---
     if pid.startswith("S_1"):
-        # Section S_1.1: Particle Equilibrium / Force Vectors
+        # Section S_1.1: Particle Equilibrium / Force Vectors (UNIQUE)
         if "S_1.1" in pid:
+            ax.plot(0, 0, 'ko', markersize=10) 
             if pid == "S_1.1_1":
-                ax.plot(0, 0, 'ko', markersize=8)
                 ax.annotate('', xy=(-1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='blue'))
                 ax.annotate('', xy=(1.2, 1.2), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='green'))
                 ax.annotate('', xy=(0, -1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red'))
-                ax.set_xlim(-2, 2); ax.set_ylim(-2, 2)
-            else:
-                ax.plot(0, 0, 'ko', markersize=10)
-                ax.annotate('', xy=(1.5, 0.5), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='blue'))
-                ax.annotate('', xy=(-1, 1), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red'))
-                ax.text(1.5, 0.6, "F1", color='blue'); ax.text(-1, 1.1, "F2", color='red')
-                ax.set_xlim(-2, 2); ax.set_ylim(-1, 2)
+            elif pid == "S_1.1_2":
+                ax.annotate('', xy=(1, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='blue'))
+                ax.annotate('', xy=(-1, 1.5), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='green'))
+                ax.annotate('', xy=(0, -1.8), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red'))
+            elif pid == "S_1.1_3":
+                ax.annotate('', xy=(1.8, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='blue'))
+                ax.annotate('', xy=(-0.8, 1.4), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='green'))
+                ax.annotate('', xy=(-0.8, -1.4), xytext=(0, 0), arrowprops=dict(arrowstyle='->', color='red'))
+            ax.set_xlim(-2.5, 2.5); ax.set_ylim(-2.5, 2.5)
             found = True
         
-        # Section S_1.2: Simple Trusses
+        # Section S_1.2: Simple Trusses (UNIQUE)
         elif "S_1.2" in pid:
             if pid == "S_1.2_1":
                 pts = np.array([[0,0], [2,1], [4,0], [2,0], [0,0]])
                 ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([2,2], [0,1], 'k-', lw=2)
-            else:
-                pts = np.array([[0,0], [1,1.5], [2,0], [0,0]])
-                ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2)
-                ax.plot([1,1], [0, 1.5], 'k-', lw=1)
-                ax.plot([-0.2, 0.2], [-0.1, -0.1], 'k-', lw=2)
-            ax.set_xlim(-0.5, 4.5); ax.set_ylim(-0.5, 2)
+            elif pid == "S_1.2_2":
+                pts = np.array([[0,0], [1,1.5], [2,1.5], [3,0], [0,0]])
+                ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([1,2], [1.5,0], 'k-', lw=2)
+            elif pid == "S_1.2_3":
+                pts = np.array([[0,0], [0,2], [2,0], [0,0]])
+                ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([0,1], [1,0], 'k-', lw=2)
+            ax.set_xlim(-0.5, 4.5); ax.set_ylim(-0.5, 2.5)
             found = True
 
-        # Section S_1.3: Beam Loading
+        # Section S_1.3: Geometric Properties (UNIQUE Shapes)
         elif "S_1.3" in pid:
-            ax.plot([0, 4], [0, 0], 'k-', lw=4)
-            ax.plot(0, -0.1, 'r^', markersize=12)
-            ax.plot(4, -0.1, 'ro', markersize=8)
-            ax.annotate('', xy=(2, 0), xytext=(2, 1), arrowprops=dict(arrowstyle='->', color='green', lw=2))
-            ax.text(2, 1.1, "P", color='green', ha='center')
-            ax.set_xlim(-1, 5); ax.set_ylim(-1, 2)
+            if pid == "S_1.3_1": # Rectangle
+                rect = plt.Rectangle((0, 0), 4, 6, color='gray', alpha=0.3)
+                ax.add_patch(rect); ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
+                ax.plot(2, 3, 'rx', markersize=10)
+            elif pid == "S_1.3_2": # Triangle
+                tri = plt.Polygon([[0,0], [4,0], [0,6]], color='gray', alpha=0.3)
+                ax.add_patch(tri); ax.set_xlim(-1, 5); ax.set_ylim(-1, 7)
+                ax.plot(1.33, 2, 'rx', markersize=10)
+            elif pid == "S_1.3_3": # Semicircle placeholder
+                theta = np.linspace(0, np.pi, 100)
+                ax.fill(3*np.cos(theta), 3*np.sin(theta), color='gray', alpha=0.3)
+                ax.set_xlim(-4, 4); ax.set_ylim(-1, 4)
+                ax.plot(0, 1.27, 'rx', markersize=10)
             found = True
 
-        # Section S_1.4: Friction / Blocks
+        # Section S_1.4: Friction / Blocks (UNIQUE)
         elif "S_1.4" in pid:
-            rect = plt.Rectangle((0.5, 0), 2, 1, color='gray', alpha=0.3)
-            ax.add_patch(rect)
-            ax.plot([0, 4], [0, 0], 'k-', lw=2)
-            ax.annotate('', xy=(2.5, 0.5), xytext=(3.5, 0.5), arrowprops=dict(arrowstyle='<-', color='red'))
-            ax.text(3.6, 0.5, "P", color='red')
-            ax.set_xlim(0, 4); ax.set_ylim(-0.5, 2)
+            ax.plot([-1, 5], [0, 0], 'k-', lw=2) 
+            if pid == "S_1.4_1":
+                ax.add_patch(plt.Rectangle((1, 0), 2, 1.2, color='gray', alpha=0.4))
+                ax.annotate('', xy=(3, 0.6), xytext=(4.5, 0.6), arrowprops=dict(arrowstyle='<-', color='red'))
+            elif pid == "S_1.4_2":
+                ax.plot([0, 4], [0, 2], 'k-', lw=2)
+                ax.add_patch(plt.Rectangle((1, 0.5), 1.5, 0.8, angle=26, color='gray', alpha=0.4))
+            elif pid == "S_1.4_3":
+                ax.add_patch(plt.Rectangle((0.5, 0), 1.5, 1, color='gray', alpha=0.4))
+                ax.add_patch(plt.Rectangle((2.5, 0), 1.5, 1, color='gray', alpha=0.4))
+                ax.plot([2, 2.5], [0.5, 0.5], 'k--', lw=2)
+            ax.set_xlim(-0.5, 5.5); ax.set_ylim(-0.5, 3)
             found = True
 
     # --- 2. Dynamics Image Loader ---
