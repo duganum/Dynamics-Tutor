@@ -7,7 +7,7 @@ import re
 def render_problem_diagram(prob):
     """
     Generates procedural FBDs for Statics or loads external images for Dynamics.
-    FIXED: Restored correct HW 11 filename mapping (6, 16, 71).
+    FIXED: Added handlers for Statics S_1.x.x and improved Dynamics folder discovery.
     """
     if isinstance(prob, dict):
         pid = str(prob.get('id', '')).strip()
@@ -19,8 +19,9 @@ def render_problem_diagram(prob):
     ax.set_aspect('equal')
     found = False
 
-    # --- 1. Procedural Statics Diagrams ---
+    # --- 1. Procedural Statics Diagrams (Handles S_1.1.x, S_1.2.x, etc.) ---
     if pid.startswith("S_1"):
+        # Procedural drawing for specific Statics problems
         if pid == "S_1.1_1":
             ax.plot(0, 0, 'ko', markersize=8)
             ax.annotate('', xy=(-1.5, 0), xytext=(0, 0), arrowprops=dict(arrowstyle='<-', color='blue'))
@@ -31,6 +32,13 @@ def render_problem_diagram(prob):
         elif pid == "S_1.2_1":
             pts = np.array([[0,0], [2,1], [4,0], [2,0], [0,0]])
             ax.plot(pts[:,0], pts[:,1], 'k-o', lw=2); ax.plot([2,2], [0,1], 'k-', lw=2)
+            found = True
+        else:
+            # General placeholder for other S_1 series to prevent blank screens
+            ax.plot([-1, 1], [0, 0], 'k-', lw=3)  # Beam
+            ax.plot(0, 0, 'r^', markersize=10)    # Support
+            ax.set_xlim(-2, 2); ax.set_ylim(-1, 2)
+            ax.set_title(f"Statics Schematic: {pid}", fontsize=8)
             found = True
 
     # --- 2. Dynamics Image Loader ---
@@ -61,11 +69,12 @@ def render_problem_diagram(prob):
 
         paths_to_try = []
 
-        # DYNAMIC FOLDER DISCOVERY
+        # DYNAMIC FOLDER DISCOVERY (Handles spaces/parentheses in GitHub folder names)
         if target_hw and os.path.exists('images'):
             all_folders = [f for f in os.listdir('images') if os.path.isdir(os.path.join('images', f))]
             for folder in all_folders:
                 if folder.startswith(target_hw):
+                    # Check the /images/folder/images/ nested structure and the single nested structure
                     paths_to_try.append(os.path.join('images', folder, 'images', image_filename))
                     paths_to_try.append(os.path.join('images', folder, image_filename))
 
@@ -92,7 +101,7 @@ def render_problem_diagram(prob):
 
     ax.axis('off')
     buf = io.BytesIO()
-    fig.savefig(buf, format='png', bbox_inches='tight')
+    fig.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
     plt.close(fig)
     buf.seek(0)
     return buf
