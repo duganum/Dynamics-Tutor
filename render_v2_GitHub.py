@@ -124,7 +124,10 @@ def render_problem_diagram(prob):
         folder_name = None
         
         # Mapping for Homework Folders
-        if "K_2.7" in pid or "relative velocity" in category:
+        if "instantaneous velocity" in category:
+            folder_name = "HW 11-3 (kinematics of rigid body-Instantaneous velocity)"
+            image_filename = f"{pid.split('_')[-1]}.png"
+        elif "K_2.7" in pid or "relative velocity" in category:
             folder_name = "HW 11-2 (kinematics of rigid body-relative velocity)"
             image_filename = f"{pid.split('_')[-1]}.png"
         elif "K_2.6" in pid or "rotation" in category or "rigid" in category:
