@@ -385,7 +385,6 @@
     "required_units": ["rad/s^2", "m/s^2"]
   },
   {
-#    "id": "K12_135",
     "id": "5",
     "category": "kinematics of rigid body-relative acceleration",
     "statement": "The mechanism of Prob. 5/76 is repeated here. The angular velocity $\\omega_0$ of the disk is constant. For the instant represented, determine the angular acceleration $\\alpha_{AB}$ of link $AB$ and the acceleration $a_B$ of collar $B$. Assume the quantities $\\omega_0$ and $r$ to be known.",
