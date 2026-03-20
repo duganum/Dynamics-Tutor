@@ -348,5 +348,32 @@
     "statement": "Each of the sliding bars $A$ and $B$ engages its respective rim of the two riveted wheels without slipping. Bar $A$ moves at $v_A = 0.8$ m/s to the right, and bar $B$ moves at $v_B = 0.6$ m/s to the left. Inner radius is 100 mm and outer radius is 160 mm. Determine the magnitude of the velocity of point $P$ for the position shown.",
     "targets": { "v_P": 0.9 },
     "required_units": ["m/s"]
+  },
+  {
+    "id": "HW11.3_91",
+    "hw_title": "HW 11-3",
+    "hw_subtitle": "kinematics of rigid body-Instantaneous velocity",
+    "category": "HW 11-3 (kinematics of rigid body-Instantaneous velocity)",
+    "statement": "The slender bar is moving in general plane motion with the indicated linear and angular properties. Locate the instantaneous center of zero velocity and determine the velocities of points $A$ and $B$. Given: $v_G = 2$ m/s to the right, $\\omega = 4$ rad/s counterclockwise, and the bar has equal segments of 0.3 m on either side of $G$.",
+    "targets": { "IC_dist_from_G": 0.5, "v_A": 2.33, "v_B": 2.33 },
+    "required_units": ["m", "m/s"]
+  },
+  {
+    "id": "HW11.3_94",
+    "hw_title": "HW 11-3",
+    "hw_subtitle": "kinematics of rigid body-Instantaneous velocity",
+    "category": "HW 11-3 (kinematics of rigid body-Instantaneous velocity)",
+    "statement": "A circular disk of radius 0.2 m is released near a horizontal surface with $v_O = 0.7$ m/s to the right and $\\omega = 2$ rad/s counterclockwise. Locate the instantaneous center of rotation and determine the velocities of points $A$ and $P$.",
+    "targets": { "y_IC": -0.35, "v_A": 0.806, "v_P": 0.3 },
+    "required_units": ["m", "m/s"]
+  },
+  {
+    "id": "HW11.3_95",
+    "hw_title": "HW 11-3",
+    "hw_subtitle": "kinematics of rigid body-Instantaneous velocity",
+    "category": "HW 11-3 (kinematics of rigid body-Instantaneous velocity)",
+    "statement": "For the instant represented, when crank $OA$ (length 60 mm) passes the horizontal position with an angular velocity of 8 rad/s CCW, determine the velocity of the center $G$ of link $AB$ ($AB = 180$ mm) by the method of instantaneous centers. The vertical distance between $O$ and the path of $B$ is 90 mm.",
+    "targets": { "v_G": 0.416 },
+    "required_units": ["m/s"]
   }
 ]
