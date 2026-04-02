@@ -185,6 +185,13 @@ elif st.session_state.page == "chat":
                 st.session_state.chat_sessions[p_id].send_message(user_input)
                 st.rerun()
 
+    # --- REVISION: Added Submit Button ---
+    st.markdown("---")
+    if st.button("📊 Submit Progress Report", use_container_width=True):
+        st.session_state.last_report = analyze_and_send_report(st.session_state.user_name, st.session_state.grading_data)
+        st.session_state.page = "report_view"
+        st.rerun()
+
     if st.button("🏠 Exit to Home", use_container_width=True):
         st.session_state.page = "landing"
         st.rerun()
