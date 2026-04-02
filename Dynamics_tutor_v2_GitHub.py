@@ -185,12 +185,18 @@ elif st.session_state.page == "chat":
                 st.session_state.chat_sessions[p_id].send_message(user_input)
                 st.rerun()
 
-    # --- REVISION: Added Submit Button ---
+    # --- DEBUG REVISION: Submit Button with Error Handling ---
     st.markdown("---")
     if st.button("📊 Submit Progress Report", use_container_width=True):
-        st.session_state.last_report = analyze_and_send_report(st.session_state.user_name, st.session_state.grading_data)
-        st.session_state.page = "report_view"
-        st.rerun()
+        try:
+            with st.spinner("Processing report..."):
+                report_text = analyze_and_send_report(st.session_state.user_name, st.session_state.grading_data)
+                st.session_state.last_report = report_text
+                st.session_state.page = "report_view"
+                st.rerun()
+        except Exception as e:
+            st.error(f"⚠️ Email Delivery Failed: {str(e)}")
+            st.info("Check your EMAIL_PASS (App Password) and RECEIVER_EMAIL variables in Railway.")
 
     if st.button("🏠 Exit to Home", use_container_width=True):
         st.session_state.page = "landing"
@@ -205,7 +211,7 @@ elif st.session_state.page == "report_view":
         st.session_state.page = "landing"
         st.rerun()
 
-# --- Page 4: Interactive Lecture (REVISED: Neutral Sliders) ---
+# --- Page 4: Interactive Lecture ---
 elif st.session_state.page == "lecture":
     st.title(f"🎓 Interactive Lecture: {st.session_state.lecture_topic}")
     
