@@ -185,12 +185,23 @@ elif st.session_state.page == "chat":
                 st.session_state.chat_sessions[p_id].send_message(user_input)
                 st.rerun()
 
-    # --- DEBUG REVISION: Submit Button with Error Handling ---
+    # --- UPDATED SUBMISSION LOGIC: Fixed Missing chat_history ---
     st.markdown("---")
     if st.button("📊 Submit Progress Report", use_container_width=True):
         try:
             with st.spinner("Processing report..."):
-                report_text = analyze_and_send_report(st.session_state.user_name, st.session_state.grading_data)
+                # Retrieve history for the current session
+                current_history = []
+                if p_id in st.session_state.chat_sessions:
+                    current_history = st.session_state.chat_sessions[p_id].history
+                
+                # Pass user_name, grading_data, and the retrieved history
+                report_text = analyze_and_send_report(
+                    st.session_state.user_name, 
+                    st.session_state.grading_data,
+                    current_history
+                )
+                
                 st.session_state.last_report = report_text
                 st.session_state.page = "report_view"
                 st.rerun()
