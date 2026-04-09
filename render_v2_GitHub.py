@@ -124,14 +124,14 @@ def render_problem_diagram(prob):
         folder_name = None
         
         # Mapping for Homework Folders
-        if "kinetics of rigid body - translation" in category:
+        if "kinetics of rigid body: translation" in category:
             folder_name = "HW 13 (kinetics of rigid bodies-translation)"
-            # Manual filename mapping based on problematic IDs
-            if "1.1_1" in pid:
+            # Revised mapping for the 3 new IDs
+            if pid == "RB_K_1.1":
                 image_filename = "22.png"
-            elif "1.1_2" in pid:
+            elif pid == "RB_K_1.2":
                 image_filename = "6.png"
-            elif "1.1_3" in pid:
+            elif pid == "RB_K_1.3":
                 image_filename = "9.png"
             else:
                 image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
