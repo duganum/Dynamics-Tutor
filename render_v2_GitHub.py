@@ -124,26 +124,24 @@ def render_problem_diagram(prob):
         folder_name = None
         
         # Mapping for Homework Folders
-        if "kinetics of rigid body: rotation" in category:
+        if "kinetics of rigid body: general motion" in category:
+            folder_name = "HW 15 (kinetics of rigid bodies-general motion)"
+            if pid == "RB_K_3.1": image_filename = "78.png"
+            elif pid == "RB_K_3.2": image_filename = "87.png"
+            elif pid == "RB_K_3.3": image_filename = "97.png"
+            else: image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
+        elif "kinetics of rigid body: rotation" in category:
             folder_name = "HW 14 (kinetics of rigid bodies-rotation)"
-            if pid == "RB_K_2.1":
-                image_filename = "60.png"
-            elif pid == "RB_K_2.2":
-                image_filename = "33.png"
-            elif pid == "RB_K_2.3":
-                image_filename = "38.png"
-            else:
-                image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
+            if pid == "RB_K_2.1": image_filename = "60.png"
+            elif pid == "RB_K_2.2": image_filename = "33.png"
+            elif pid == "RB_K_2.3": image_filename = "38.png"
+            else: image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
         elif "kinetics of rigid body: translation" in category:
             folder_name = "HW 13 (kinetics of rigid bodies-translation)"
-            if pid == "RB_K_1.1":
-                image_filename = "22.png"
-            elif pid == "RB_K_1.2":
-                image_filename = "6.png"
-            elif pid == "RB_K_1.3":
-                image_filename = "9.png"
-            else:
-                image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
+            if pid == "RB_K_1.1": image_filename = "22.png"
+            elif pid == "RB_K_1.2": image_filename = "6.png"
+            elif pid == "RB_K_1.3": image_filename = "9.png"
+            else: image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
         elif "relative acceleration" in category:
             folder_name = "HW 12 (kinematics of rigid body-relative acceleration)"
             image_filename = f"{pid.split('_')[-1]}.png"
@@ -155,14 +153,10 @@ def render_problem_diagram(prob):
             image_filename = f"{pid.split('_')[-1]}.png"
         elif "rotation" in category:
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
-            if "2.6_1" in pid:
-                image_filename = "18.png"
-            elif "2.6_2" in pid:
-                image_filename = "6.png"
-            elif "2.6_3" in pid:
-                image_filename = "16.png"
-            else:
-                image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
+            if "2.6_1" in pid: image_filename = "18.png"
+            elif "2.6_2" in pid: image_filename = "6.png"
+            elif "2.6_3" in pid: image_filename = "16.png"
+            else: image_filename = f"{pid.split('_')[-1]}.png" if "_" in pid else f"{pid}.png"
         elif "impact" in category or pid in ["239", "243", "249", "252"]:
             folder_name = "HW 10 (Impact)"
             image_filename = f"{pid}.png"
