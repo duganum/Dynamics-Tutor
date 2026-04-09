@@ -97,6 +97,8 @@ if st.session_state.page == "landing":
         # Mapping Logic
         if "statics" in low_cat:
             cat_main = "00_Statics"
+        elif "kinetics" in low_cat and ("rigid" in low_cat or "translation" in low_cat):
+            cat_main = "08_Kinetics of Rigid Body"
         elif "kinematics" in low_cat and "rigid" not in low_cat and "rotation" not in low_cat:
             cat_main = "01_Kinematics of Particle"
         elif "rectilinear" in low_cat:
