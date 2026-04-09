@@ -432,5 +432,26 @@
     "statement": "Determine the angular acceleration and the force on the bearing at $O$ for (a) the narrow ring of mass $m$ and (b) the flat circular disk of mass $m$ immediately after each is released from rest in the vertical plane with $OC$ horizontal.",
     "targets": { "alpha_a": "g/(2r)", "R_a": "mg/2", "alpha_b": "2g/(3r)", "R_b": "mg/3" },
     "required_units": ["rad/s^2", "n"]
+  },
+  {
+    "id": "RB_K_3.1",
+    "category": "Kinetics of Rigid Body: General Motion",
+    "statement": "The solid homogeneous cylinder is released from rest on the ramp. If $\\theta = 40^\\circ$, $\\mu_s = 0.30$, and $\\mu_k = 0.20$, determine the acceleration of the mass center $G$ and the friction force exerted by the ramp on the cylinder. (Weight $W = 8$ lb, Radius $r = 6$ in.)",
+    "targets": { "a_G": 13.8, "F": 1.226 },
+    "required_units": ["ft/sec^2", "lb"]
+  },
+  {
+    "id": "RB_K_3.2",
+    "category": "Kinetics of Rigid Body: General Motion",
+    "statement": "The system is released from rest with the cable taut, and the homogeneous cylinder does not slip on the rough incline. Determine the angular acceleration of the cylinder and the minimum coefficient $\\mu_s$ of friction for which the cylinder will not slip. (Cylinder mass = 7 kg, radius = 0.15 m, Hanging mass = 10 kg, Incline angle = 20°)",
+    "targets": { "alpha": 48.7, "mu_s": 0.231 },
+    "required_units": ["rad/s^2", "unitless"]
+  },
+  {
+    "id": "RB_K_3.3",
+    "category": "Kinetics of Rigid Body: General Motion",
+    "statement": "The uniform 15-kg bar is supported on the horizontal surface at $A$ by a small roller of negligible mass. If the coefficient of kinetic friction between end $B$ and the vertical surface is 0.30, calculate the initial acceleration of end $A$ as the bar is released from rest in the position shown. (Bar length = 2.4 m, Angle with vertical = 40°)",
+    "targets": { "a_A": 4.14 },
+    "required_units": ["m/s^2"]
   }
 ]
