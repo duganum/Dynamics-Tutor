@@ -411,5 +411,26 @@
     "statement": "Determine the acceleration of the initially stationary 20-kg body when the 50-N force $P$ is applied as shown. The small wheels at $B$ are ideal, and the feet at $A$ are small. Assume $\\mu_s = 0.40$ and $\\mu_k = 0.30$. Length is 0.8 m and height is 0.4 m.",
     "targets": { "a": 1.233 },
     "required_units": ["m/s^2"]
+  },
+  {
+    "id": "RB_K_2.1",
+    "category": "Kinetics of Rigid Body: Rotation",
+    "statement": "A device for impact testing consists of a 34-kg pendulum with mass center at $G$ and with radius of gyration about $O$ of 620 mm. The distance $b$ for the pendulum is selected so that the force on the bearing at $O$ has the least possible value during impact with the specimen at the bottom of the swing. Determine $b$ and calculate the magnitude of the total force $R$ on the bearing $O$ an instant after release from rest at $\\theta = 60^\\circ$.",
+    "targets": { "b": 0.0407, "R": 144.4 },
+    "required_units": ["m", "n"]
+  },
+  {
+    "id": "RB_K_2.2",
+    "category": "Kinetics of Rigid Body: Rotation",
+    "statement": "The uniform 20-kg slender bar is pivoted at $O$ and swings freely in the vertical plane. If the bar is released from rest in the horizontal position, calculate the initial value of the force $R$ exerted by the bearing on the bar an instant after release. (Length of the bar is 1.6 m).",
+    "targets": { "R": 49.05 },
+    "required_units": ["n"]
+  },
+  {
+    "id": "RB_K_2.3",
+    "category": "Kinetics of Rigid Body: Rotation",
+    "statement": "Determine the angular acceleration and the force on the bearing at $O$ for (a) the narrow ring of mass $m$ and (b) the flat circular disk of mass $m$ immediately after each is released from rest in the vertical plane with $OC$ horizontal.",
+    "targets": { "alpha_a": "g/(2r)", "R_a": "mg/2", "alpha_b": "2g/(3r)", "R_b": "mg/3" },
+    "required_units": ["rad/s^2", "n"]
   }
 ]
