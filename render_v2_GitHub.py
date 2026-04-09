@@ -141,10 +141,10 @@ def render_problem_diagram(prob):
         elif "instantaneous velocity" in category:
             folder_name = "HW 11-3 (kinematics of rigid body-Instantaneous velocity)"
             image_filename = f"{pid.split('_')[-1]}.png"
-        elif "K_2.7" in pid or "relative velocity" in category:
+        elif "relative velocity" in category:
             folder_name = "HW 11-2 (kinematics of rigid body-relative velocity)"
             image_filename = f"{pid.split('_')[-1]}.png"
-        elif "K_2.6" in pid or "rotation" in category or "rigid" in category:
+        elif "rotation" in category:
             folder_name = "HW 11 (kinematics of rigid body-rotation)"
             # Specific mappings for requested rigid body problems
             if "2.6_1" in pid:
