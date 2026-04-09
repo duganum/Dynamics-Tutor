@@ -392,22 +392,22 @@
     "required_units": ["rad/s^2", "m/s^2"]
   },
   {
-    "id": "RB_K_1.1_1",
-    "category": "Kinetics of Rigid body - Translation",
+    "id": "RB_K_1.1",
+    "category": "Kinetics of Rigid Body: Translation",
     "statement": "The block $A$ and attached rod have a combined mass of 60 kg and are confined to move along the 60° guide under the action of the 800-N applied force. The uniform horizontal rod has a mass of 20 kg and is welded to the block at $B$. Friction in the guide is negligible. Compute the bending moment $M$ exerted by the weld on the rod at $B$.",
     "targets": { "M": 113.3 },
     "required_units": ["nm"]
   },
   {
-    "id": "RB_K_1.1_2",
-    "category": "Kinetics of Rigid body - Translation",
+    "id": "RB_K_1.2",
+    "category": "Kinetics of Rigid Body: Translation",
     "statement": "The uniform box of mass $m$ slides down the rough incline. Determine the location $d$ of the effective normal force $N$. The effective normal force is located at the centroid of the nonuniform pressure distribution which the incline exerts on the bottom surface of the block.",
     "targets": { "d": "\\frac{b}{2} - \\mu_k \\frac{h}{2}" },
     "required_units": ["m"]
   },
   {
-    "id": "RB_K_1.1_3",
-    "category": "Kinetics of Rigid body - Translation",
+    "id": "RB_K_1.3",
+    "category": "Kinetics of Rigid Body: Translation",
     "statement": "Determine the acceleration of the initially stationary 20-kg body when the 50-N force $P$ is applied as shown. The small wheels at $B$ are ideal, and the feet at $A$ are small. Assume $\\mu_s = 0.40$ and $\\mu_k = 0.30$. Length is 0.8 m and height is 0.4 m.",
     "targets": { "a": 1.233 },
     "required_units": ["m/s^2"]
