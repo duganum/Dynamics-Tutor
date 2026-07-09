@@ -13,7 +13,7 @@ def get_gemini_model(system_instruction):
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         return genai.GenerativeModel(
-            model_name='models/gemini-2.5-flash', 
+            model_name='models/gemini-3.5-flash', 
             system_instruction=system_instruction
         )
     except Exception as e:
