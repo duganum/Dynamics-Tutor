@@ -189,23 +189,20 @@ def evaluate_understanding_score(chat_history):
     if not chat_history or len(str(chat_history).strip()) == 0:
         return 0
 
-    eval_instruction = r"""You are a strict Engineering Professor at Texas A&M University - Corpus Christi. Evaluate the student's level of physical and mathematical understanding (0-10) based ONLY on the chat history.
+    eval_instruction = r"""You are an Engineering Professor at Texas A&M University - Corpus Christi. Evaluate the student's level of physical and mathematical understanding (0-10) on the FIRST attempt based ONLY on the transcript.
 
-SINGLE-PROBLEM EVALUATION DIRECTIVES:
-1. This session evaluates ONLY ONE single assigned problem. Do NOT penalize for coverage, unmentioned topics, unaddressed syllabus modules, or leaving the chat after solving the problem.
-2. Focus strictly on student responses, mathematical accuracy, and reasoning quality for the active problem in the transcript.
-3. Do NOT penalize the score for external system states, missing database flags, or platform logging errors.
-4. Reward active learning: If a student makes an initial error but self-corrects after a Socratic hint, score them generously for concept recovery.
+CORE EVALUATION RULE:
+If the student successfully solves the assigned problem and arrives at the correct physics principles/solution, assign a 10/10. Do NOT dock points for receiving tutor guidance, taking multiple steps, or solving only a single problem.
 
-STRICT SCORING RUBRIC:
-0: No participation, empty session, or complete lack of attempt.
-1-3: Minimal participation, persistent off-topic responses, or failure to engage with hints.
-4-5: Good engagement, but relies heavily on tutor step-by-step guidance without applying correct governing equations independently.
-6-7: Successfully solves the problem with minor initial setup errors that were quickly self-corrected after a hint.
-8-9: Strong mastery, proper LaTeX/governing equations, correct final numeric execution with minimal guidance.
-10: Complete mastery, flawless physics logic, independent derivation, and pristine mathematical rigor for the single problem.
+SCORING DIRECTIVES:
+10/10: Problem solved correctly. The student completed the required physics steps, applied correct equations, and obtained the correct final target values.
+7-9/10: Correct setup and physics reasoning, but minor arithmetic/conversion errors prevented exact final execution.
+4-6/10: Partial setup achieved, but key governing equations were missed or incomplete.
+1-3/10: Minimal participation, off-topic, or refused to engage with hints.
+0/10: No attempt or empty history.
 
-Output ONLY the integer score."""
+STRICT FORMAT DIRECTIVE:
+Output ONLY the integer score (e.g., 10). Do not include any explanation or extra text."""
 
     model = get_gemini_model(eval_instruction)
     if not model:
@@ -228,15 +225,15 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
     """Generates session analysis report and emails results."""
     score = evaluate_understanding_score(chat_history)
 
-    report_instruction = r"""You are an expert Engineering Education Evaluator for Dr. Dugan Um at TAMUCC. Analyze the session data and generate a professional mastery report using Markdown.
+    report_instruction = r"""You are an expert Engineering Education Evaluator for Dr. Dugan Um at TAMUCC. Analyze the session data and generate a concise mastery report in Markdown.
 
-STRICT EVALUATION & FORMATTING RULES:
-1. THIS EVALUATION IS EXCLUSIVELY FOR A SINGLE PROBLEM SESSION. Do NOT dock points or mention 'Coverage (0/5)', 'incomplete topics', or 'unaddressed assigned topics'.
-2. DO NOT use LaTeX document wrappers like \documentclass or \begin{document}.
-3. Use standard Markdown headers (##, ###) and bold text (**).
-4. Use LaTeX ONLY for individual formulas (e.g., $F=ma$).
-5. REQUIRED SECTIONS: ## Overview, ## Score, ## Mathematical Rigor, ## Concept Mastery, ## Engagement, ## Recommendations.
-6. Base the score justification exclusively on student physics logic and chat interaction for the single problem. Do NOT reference system/database flags or missing modules."""
+EVALUATION RULES:
+1. If the score is 10/10, explicitly highlight that the student mastered the problem requirements on the first attempt.
+2. Never mention 'score reconciliation', 'syllabus coverage', 'missing topics', or 'database errors'.
+3. DO NOT use LaTeX document wrappers like \documentclass or \begin{document}.
+4. Use standard Markdown headers (##, ###) and bold text (**).
+5. Use inline LaTeX ONLY for math/physics formulas (e.g., $F=ma$).
+6. REQUIRED SECTIONS: ## Overview, ## Score, ## Mathematical Rigor, ## Concept Mastery, ## Engagement, ## Recommendations."""
 
     model = get_gemini_model(report_instruction)
     if not model:
@@ -247,7 +244,7 @@ STRICT EVALUATION & FORMATTING RULES:
         f"Assigned Single Problem: {topic_title}\n"
         f"Assigned Score: {score}/10\n\n"
         f"SESSION CHAT HISTORY:\n{chat_history}\n\n"
-        "Write the evaluation in Markdown for a clean web display."
+        "Write the evaluation report."
     )
 
     try:
