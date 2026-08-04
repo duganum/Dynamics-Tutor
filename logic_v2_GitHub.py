@@ -1,3 +1,4 @@
+```python
 import streamlit as st
 import google.generativeai as genai
 import json
@@ -131,15 +132,25 @@ def get_footer_info(prob):
 
 def evaluate_understanding_score(chat_history):
     """대화 내용을 바탕으로 이해도를 0-10점으로 평가합니다."""
+    # Fast exit for empty sessions to prevent automatic 0/10 LLM evaluation errors
+    if not chat_history or len(str(chat_history).strip()) == 0:
+        return 0
+
     eval_instruction = (
         "You are a strict Engineering Professor at Texas A&M University - Corpus Christi. "
-        "Evaluate the student's level of understanding (0-10) based ONLY on the chat history.\n\n"
+        "Evaluate the student's level of physical and mathematical understanding (0-10) based ONLY on the chat history.\n\n"
+        "EVALUATION DIRECTIVES:\n"
+        "1. Focus strictly on student responses and reasoning quality in the transcript.\n"
+        "2. Do NOT penalize the score for external system states, missing database flags, or platform logging errors.\n"
+        "3. Reward active learning: If a student makes an initial error but quickly self-corrects after a Socratic hint, score them generously for concept recovery.\n\n"
         "STRICT SCORING RUBRIC:\n"
-        "0-3: Little participation, irrelevant answers.\n"
-        "4-5: Good engagement but lacks governing equations or proper LaTeX.\n"
-        "6-8: Correctly identifying and using relevant equations in LaTeX.\n"
-        "9-10: Complete mastery with flawless physics logic.\n\n"
-        "Output ONLY the integer."
+        "0: No participation, empty session, or complete lack of attempt.\n"
+        "1-3: Minimal participation, persistent off-topic responses, or failure to engage with hints.\n"
+        "4-5: Good engagement, but relies heavily on tutor step-by-step guidance without applying correct governing equations independently.\n"
+        "6-7: Successfully solves the problem with minor initial setup errors that were quickly self-corrected after a hint.\n"
+        "8-9: Strong mastery, proper LaTeX/governing equations, correct final numeric execution with minimal guidance.\n"
+        "10: Complete mastery, flawless physics logic, independent derivation, and pristine mathematical rigor.\n\n"
+        "Output ONLY the integer score."
     )
     
     model = get_gemini_model(eval_instruction)
@@ -166,7 +177,8 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
         "1. DO NOT use LaTeX document wrappers like \\documentclass or \\begin{document}.\n"
         "2. Use standard Markdown headers (##, ###) and bold text (**).\n"
         "3. Use LaTeX ONLY for individual formulas (e.g., $F=ma$).\n"
-        "4. REQUIRED SECTIONS: ## Overview, ## Score, ## Mathematical Rigor, ## Concept Mastery, ## Engagement, ## Recommendations."
+        "4. REQUIRED SECTIONS: ## Overview, ## Score, ## Mathematical Rigor, ## Concept Mastery, ## Engagement, ## Recommendations.\n"
+        "5. Base the score justification exclusively on student physics logic and chat interaction. Do NOT reference system/database flags."
     )
     
     model = get_gemini_model(report_instruction)
@@ -206,3 +218,5 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
         print(f"SMTP Error: {e}")
     
     return report_text
+
+```
