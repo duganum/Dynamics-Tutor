@@ -1,14 +1,17 @@
-Here is the complete fixed Python code. Only the instructions inside `evaluate_understanding_score` and `analyze_and_send_report` were modified to enforce single-problem evaluation rules and eliminate the coverage penalty.
+The `SyntaxError` is caused by **invisible non-breaking space characters (`U+00A0`)** in `logic_v2_GitHub.py`. These non-breaking spaces often get introduced when copying code snippets directly from web browsers or formatted text editors into Python files, triggering a syntax error on startup.
+
+Replace the entire contents of `logic_v2_GitHub.py` with this clean version (all indentation converted strictly to standard ASCII spaces):
 
 ```python
-import streamlit as st
-import google.generativeai as genai
 import json
-import smtplib
-import re
 import os
-from email.mime.text import MIMEText
+import re
+import smtplib
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import google.generativeai as genai
+import streamlit as st
+
 
 def get_gemini_model(system_instruction):
     """Gemini 2.5 Flash 모델을 설정하고 반환합니다."""
@@ -16,96 +19,158 @@ def get_gemini_model(system_instruction):
         api_key = st.secrets["GEMINI_API_KEY"]
         genai.configure(api_key=api_key)
         return genai.GenerativeModel(
-            model_name='models/gemini-3.5-flash', 
-            system_instruction=system_instruction
+            model_name="models/gemini-3.5-flash",
+            system_instruction=system_instruction,
         )
     except Exception as e:
         st.error(f"Gemini 초기화 실패: {e}")
         return None
 
+
 def load_problems():
     """저장소의 JSON 파일에서 문제 목록을 불러오고 새 문제를 병합합니다."""
-    # List updated to include Rigid Body Kinematics (Rotation)
     new_problems = [
         {
             "id": "176",
             "category": "Impulse and Momentum",
-            "statement": "A 75-g projectile traveling at 600 m/s strikes and becomes embedded in the 50-kg block, which is initially stationary. Compute the energy lost during the impact. Express your answer as an absolute value |ΔE| and as a percentage n of the original system energy E.",
-            "targets": { "|ΔE|": 13480, "n": 99.85 },
-            "required_units": ["J", "%"]
+            "statement": (
+                "A 75-g projectile traveling at 600 m/s strikes and becomes"
+                " embedded in the 50-kg block, which is initially stationary."
+                " Compute the energy lost during the impact. Express your answer"
+                " as an absolute value |ΔE| and as a percentage n of the"
+                " original system energy E."
+            ),
+            "targets": {"|ΔE|": 13480, "n": 99.85},
+            "required_units": ["J", "%"],
         },
         {
             "id": "198",
             "category": "Impulse and Momentum",
-            "statement": "The 450-kg ram of a pile driver falls 1.4 m from rest and strikes the top of a 240-kg pile embedded 0.9 m in the ground. Upon impact the ram is seen to move with the pile with no noticeable rebound. Determine the velocity v of the pile and ram immediately after impact.",
-            "targets": { "v": 3.42 },
-            "required_units": ["m/s"]
+            "statement": (
+                "The 450-kg ram of a pile driver falls 1.4 m from rest and"
+                " strikes the top of a 240-kg pile embedded 0.9 m in the"
+                " ground. Upon impact the ram is seen to move with the pile"
+                " with no noticeable rebound. Determine the velocity v of the"
+                " pile and ram immediately after impact."
+            ),
+            "targets": {"v": 3.42},
+            "required_units": ["m/s"],
         },
         {
             "id": "209",
             "category": "Work and Energy / Momentum",
-            "statement": "The cylindrical plug A of mass m_A is released from rest at B and slides down the smooth circular guide. The plug strikes the block C and becomes embedded in it. Write the expression for the distance s which the block and plug slide before coming to rest. The coefficient of kinetic friction between the block and the horizontal surface is μ_k.",
-            "targets": { "s": "m_A^2 * r / (μ_k * (m_A + m_C)^2)" },
-            "required_units": ["m"]
+            "statement": (
+                "The cylindrical plug A of mass m_A is released from rest at B"
+                " and slides down the smooth circular guide. The plug strikes"
+                " the block C and becomes embedded in it. Write the expression"
+                " for the distance s which the block and plug slide before"
+                " coming to rest. The coefficient of kinetic friction between"
+                " the block and the horizontal surface is μ_k."
+            ),
+            "targets": {"s": "m_A^2 * r / (μ_k * (m_A + m_C)^2)"},
+            "required_units": ["m"],
         },
         {
             "id": "239",
             "category": "Impact",
-            "statement": "Tennis balls are usually rejected if they fail to rebound to waist level when dropped from shoulder level. If a ball just passes the test as indicated in the figure, determine the coefficient of restitution $e$ and the percentage $n$ of the original energy lost during the impact.",
-            "targets": { "e": 0.829, "n": 31.2 },
-            "required_units": ["unitless", "%"]
+            "statement": (
+                "Tennis balls are usually rejected if they fail to rebound to"
+                " waist level when dropped from shoulder level. If a ball just"
+                " passes the test as indicated in the figure, determine the"
+                " coefficient of restitution $e$ and the percentage $n$ of the"
+                " original energy lost during the impact."
+            ),
+            "targets": {"e": 0.829, "n": 31.2},
+            "required_units": ["unitless", "%"],
         },
         {
             "id": "249",
             "category": "Impact",
-            "statement": "In the selection of the ram of a pile driver, it is desired that the ram lose all of its kinetic energy at each blow. Hence, the velocity of the ram is zero immediately after impact. The mass of each pile to be driven is 300 kg, and experience has shown that a coefficient of restitution of 0.3 can be expected. What should be the mass $m$ of the ram? Compute the velocity $v$ of the pile immediately after impact if the ram is dropped from a height of 4 m onto the pile. Also compute the energy loss $\Delta E$ due to impact at each blow.",
-            "targets": { "m": 90.0, "v": 2.66, "\Delta E|": 3530 },
-            "required_units": ["kg", "m/s", "J"]
+            "statement": (
+                "In the selection of the ram of a pile driver, it is desired"
+                " that the ram lose all of its kinetic energy at each blow."
+                " Hence, the velocity of the ram is zero immediately after"
+                " impact. The mass of each pile to be driven is 300 kg, and"
+                " experience has shown that a coefficient of restitution of 0.3"
+                " can be expected. What should be the mass $m$ of the ram?"
+                " Compute the velocity $v$ of the pile immediately after"
+                " impact if the ram is dropped from a height of 4 m onto the"
+                " pile. Also compute the energy loss $\\Delta E$ due to impact"
+                " at each blow."
+            ),
+            "targets": {"m": 90.0, "v": 2.66, "\\Delta E|": 3530},
+            "required_units": ["kg", "m/s", "J"],
         },
         {
             "id": "252",
             "category": "Impact",
-            "statement": "Determine the value of the coefficient of restitution $e$ which results in the final velocity $v'$ being perpendicular to the initial velocity $v$. The initial velocity $v$ makes an angle of 60° with the wall as shown.",
-            "targets": { "e": 0.333 },
-            "required_units": ["unitless"]
+            "statement": (
+                "Determine the value of the coefficient of restitution $e$"
+                " which results in the final velocity $v'$ being perpendicular"
+                " to the initial velocity $v$. The initial velocity $v$ makes an"
+                " angle of 60° with the wall as shown."
+            ),
+            "targets": {"e": 0.333},
+            "required_units": ["unitless"],
         },
         {
             "id": "K_2.6_1",
             "category": "Rigid Body Kinematics (Rotation)",
-            "statement": "For the instant represented, point $B$ crosses the horizontal axis through point $O$ with a downward velocity $v = 0.6$ m/s. Determine the corresponding value of the angular velocity $\omega_{OA}$ of link $OA$. Length $OA = 130$ mm, length $AB = 90$ mm, horizontal distance $OB = 180$ mm.",
-            "targets": { "omega_OA": 10.0 },
-            "required_units": ["rad/s"]
+            "statement": (
+                "For the instant represented, point $B$ crosses the horizontal"
+                " axis through point $O$ with a downward velocity $v = 0.6$"
+                " m/s. Determine the corresponding value of the angular"
+                " velocity $\\omega_{OA}$ of link $OA$. Length $OA = 130$ mm,"
+                " length $AB = 90$ mm, horizontal distance $OB = 180$ mm."
+            ),
+            "targets": {"omega_OA": 10.0},
+            "required_units": ["rad/s"],
         },
         {
             "id": "K_2.6_2",
             "category": "Rigid Body Kinematics (Rotation)",
-            "statement": "The mass center $G$ of the car has a velocity of $40$ mi/hr at position $A$ and $1.52$ seconds later at $B$ has a velocity of $50$ mi/hr. The radius of curvature of the road at $B$ is $180$ ft. Calculate the angular velocity $\omega$ of the car at $B$ and the average angular velocity $\omega_{av}$ of the car between $A$ and $B$. Initial angle is $30^{\circ}$ from vertical at $A$.",
-            "targets": { "omega_B": 0.407, "omega_av": 0.344 },
-            "required_units": ["rad/sec"]
+            "statement": (
+                "The mass center $G$ of the car has a velocity of $40$ mi/hr at"
+                " position $A$ and $1.52$ seconds later at $B$ has a velocity"
+                " of $50$ mi/hr. The radius of curvature of the road at $B$ is"
+                " $180$ ft. Calculate the angular velocity $\\omega$ of the"
+                " car at $B$ and the average angular velocity $\\omega_{av}$ of"
+                " the car between $A$ and $B$. Initial angle is $30^{\\circ}$"
+                " from vertical at $A$."
+            ),
+            "targets": {"omega_B": 0.407, "omega_av": 0.344},
+            "required_units": ["rad/sec"],
         },
         {
             "id": "K_2.6_3",
             "category": "Rigid Body Kinematics (Rotation)",
-            "statement": "The rotating arm starts from rest and acquires a rotational speed $N = 600$ rev/min in $2$ seconds with constant angular acceleration. Find the time $t$ after starting before the acceleration vector of end $P$ (at radius $6''$) makes an angle of $45^{\circ}$ with the arm $OP$.",
-            "targets": { "t": 0.1784 },
-            "required_units": ["s"]
-        }
+            "statement": (
+                "The rotating arm starts from rest and acquires a rotational"
+                " speed $N = 600$ rev/min in $2$ seconds with constant angular"
+                " acceleration. Find the time $t$ after starting before the"
+                " acceleration vector of end $P$ (at radius $6''$) makes an"
+                " angle of $45^{\\circ}$ with the arm $OP$."
+            ),
+            "targets": {"t": 0.1784},
+            "required_units": ["s"],
+        },
     ]
 
     try:
-        if os.path.exists('problems_v2_GitHub.json'):
-            with open('problems_v2_GitHub.json', 'r') as f:
+        if os.path.exists("problems_v2_GitHub.json"):
+            with open("problems_v2_GitHub.json", "r") as f:
                 problems = json.load(f)
         else:
             problems = []
-            
-        existing_ids = {p['id'] for p in problems}
+
+        existing_ids = {p["id"] for p in problems}
         for np in new_problems:
-            if np['id'] not in existing_ids:
+            if np["id"] not in existing_ids:
                 problems.append(np)
         return problems
-    except Exception as e:
+    except Exception:
         return new_problems
+
 
 def check_numeric_match(user_val, correct_val, tolerance=0.05):
     """숫자를 추출하여 정답과 5% 오차 범위 내에 있는지 확인합니다."""
@@ -116,13 +181,16 @@ def check_numeric_match(user_val, correct_val, tolerance=0.05):
             return c_clean in u_clean
 
         u_match = re.search(r"[-+]?\d*\.\d+|\d+", str(user_val))
-        if not u_match: return False
+        if not u_match:
+            return False
         u = float(u_match.group())
         c = float(correct_val)
-        if c == 0: return abs(u) < tolerance
+        if c == 0:
+            return abs(u) < tolerance
         return abs(u - c) <= abs(tolerance * c)
     except (ValueError, TypeError, AttributeError):
         return False
+
 
 def get_footer_info(prob):
     """Extracts title and subtitle for the bottom UI line."""
@@ -132,35 +200,47 @@ def get_footer_info(prob):
         return f"{title} ({subtitle})"
     return prob.get("category", "Engineering Practice")
 
+
 def evaluate_understanding_score(chat_history):
     """대화 내용을 바탕으로 이해도를 0-10점으로 평가합니다."""
-    # Fast exit for empty sessions to prevent automatic 0/10 LLM evaluation errors
     if not chat_history or len(str(chat_history).strip()) == 0:
         return 0
 
     eval_instruction = (
-        "You are a strict Engineering Professor at Texas A&M University - Corpus Christi. "
-        "Evaluate the student's level of physical and mathematical understanding (0-10) based ONLY on the chat history.\n\n"
-        "SINGLE-PROBLEM EVALUATION DIRECTIVES:\n"
-        "1. This session evaluates ONLY ONE single assigned problem. Do NOT penalize for coverage, unmentioned topics, unaddressed syllabus modules, or leaving the chat after solving the problem.\n"
-        "2. Focus strictly on student responses, mathematical accuracy, and reasoning quality for the active problem in the transcript.\n"
-        "3. Do NOT penalize the score for external system states, missing database flags, or platform logging errors.\n"
-        "4. Reward active learning: If a student makes an initial error but self-corrects after a Socratic hint, score them generously for concept recovery.\n\n"
-        "STRICT SCORING RUBRIC:\n"
-        "0: No participation, empty session, or complete lack of attempt.\n"
-        "1-3: Minimal participation, persistent off-topic responses, or failure to engage with hints.\n"
-        "4-5: Good engagement, but relies heavily on tutor step-by-step guidance without applying correct governing equations independently.\n"
-        "6-7: Successfully solves the problem with minor initial setup errors that were quickly self-corrected after a hint.\n"
-        "8-9: Strong mastery, proper LaTeX/governing equations, correct final numeric execution with minimal guidance.\n"
-        "10: Complete mastery, flawless physics logic, independent derivation, and pristine mathematical rigor for the single problem.\n\n"
-        "Output ONLY the integer score."
+        "You are a strict Engineering Professor at Texas A&M University -"
+        " Corpus Christi. Evaluate the student's level of physical and"
+        " mathematical understanding (0-10) based ONLY on the chat"
+        " history.\n\nSINGLE-PROBLEM EVALUATION DIRECTIVES:\n1. This session"
+        " evaluates ONLY ONE single assigned problem. Do NOT penalize for"
+        " coverage, unmentioned topics, unaddressed syllabus modules, or"
+        " leaving the chat after solving the problem.\n2. Focus strictly on"
+        " student responses, mathematical accuracy, and reasoning quality for"
+        " the active problem in the transcript.\n3. Do NOT penalize the score"
+        " for external system states, missing database flags, or platform"
+        " logging errors.\n4. Reward active learning: If a student makes an"
+        " initial error but self-corrects after a Socratic hint, score them"
+        " generously for concept recovery.\n\nSTRICT SCORING RUBRIC:\n0: No"
+        " participation, empty session, or complete lack of attempt.\n1-3:"
+        " Minimal participation, persistent off-topic responses, or failure"
+        " to engage with hints.\n4-5: Good engagement, but relies heavily on"
+        " tutor step-by-step guidance without applying correct governing"
+        " equations independently.\n6-7: Successfully solves the problem with"
+        " minor initial setup errors that were quickly self-corrected after a"
+        " hint.\n8-9: Strong mastery, proper LaTeX/governing equations,"
+        " correct final numeric execution with minimal guidance.\n10: Complete"
+        " mastery, flawless physics logic, independent derivation, and"
+        " pristine mathematical rigor for the single problem.\n\nOutput ONLY the"
+        " integer score."
     )
-    
+
     model = get_gemini_model(eval_instruction)
-    if not model: return 0
+    if not model:
+        return 0
 
     try:
-        response = model.generate_content(f"Chat history to evaluate:\n{chat_history}")
+        response = model.generate_content(
+            f"Chat history to evaluate:\n{chat_history}"
+        )
         score_match = re.search(r"\d+", response.text)
         if score_match:
             score = int(score_match.group())
@@ -169,24 +249,31 @@ def evaluate_understanding_score(chat_history):
     except Exception:
         return 0
 
+
 def analyze_and_send_report(user_name, topic_title, chat_history):
     """세션을 분석하여 이메일 리포트를 전송합니다."""
     score = evaluate_understanding_score(chat_history)
-    
+
     report_instruction = (
-        "You are an expert Engineering Education Evaluator for Dr. Dugan Um at TAMUCC. "
-        "Analyze the session data and generate a professional mastery report using Markdown.\n\n"
-        "STRICT EVALUATION & FORMATTING RULES:\n"
-        "1. THIS EVALUATION IS EXCLUSIVELY FOR A SINGLE PROBLEM SESSION. Do NOT dock points or mention 'Coverage (0/5)', 'incomplete topics', or 'unaddressed assigned topics'.\n"
-        "2. DO NOT use LaTeX document wrappers like \\documentclass or \\begin{document}.\n"
-        "3. Use standard Markdown headers (##, ###) and bold text (**).\n"
-        "4. Use LaTeX ONLY for individual formulas (e.g., $F=ma$).\n"
-        "5. REQUIRED SECTIONS: ## Overview, ## Score, ## Mathematical Rigor, ## Concept Mastery, ## Engagement, ## Recommendations.\n"
-        "6. Base the score justification exclusively on student physics logic and chat interaction for the single problem. Do NOT reference system/database flags or missing modules."
+        "You are an expert Engineering Education Evaluator for Dr. Dugan Um at"
+        " TAMUCC. Analyze the session data and generate a professional mastery"
+        " report using Markdown.\n\nSTRICT EVALUATION & FORMATTING RULES:\n1."
+        " THIS EVALUATION IS EXCLUSIVELY FOR A SINGLE PROBLEM SESSION. Do NOT"
+        " dock points or mention 'Coverage (0/5)', 'incomplete topics', or"
+        " 'unaddressed assigned topics'.\n2. DO NOT use LaTeX document wrappers"
+        " like \\documentclass or \\begin{document}.\n3. Use standard Markdown"
+        " headers (##, ###) and bold text (**).\n4. Use LaTeX ONLY for"
+        " individual formulas (e.g., $F=ma$).\n5. REQUIRED SECTIONS: ##"
+        " Overview, ## Score, ## Mathematical Rigor, ## Concept Mastery, ##"
+        " Engagement, ## Recommendations.\n6. Base the score justification"
+        " exclusively on student physics logic and chat interaction for the"
+        " single problem. Do NOT reference system/database flags or missing"
+        " modules."
     )
-    
+
     model = get_gemini_model(report_instruction)
-    if not model: return "AI Analysis Unavailable"
+    if not model:
+        return "AI Analysis Unavailable"
 
     prompt = (
         f"Student Name: {user_name}\n"
@@ -195,7 +282,7 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
         f"SESSION CHAT HISTORY:\n{chat_history}\n\n"
         "Write the evaluation in Markdown for a clean web display."
     )
-    
+
     try:
         response = model.generate_content(prompt)
         report_text = response.text
@@ -205,22 +292,24 @@ def analyze_and_send_report(user_name, topic_title, chat_history):
     # Email Logic
     try:
         sender = st.secrets["EMAIL_SENDER"]
-        password = st.secrets["EMAIL_PASSWORD"] 
-        receiver = "dugan.um@gmail.com" 
+        password = st.secrets["EMAIL_PASSWORD"]
+        receiver = "dugan.um@gmail.com"
 
         msg = MIMEMultipart()
-        msg['From'] = sender
-        msg['To'] = receiver
-        msg['Subject'] = f"Eng. Tutor ({user_name}): {topic_title} [Score: {score}/10]"
-        msg.attach(MIMEText(report_text, 'plain'))
+        msg["From"] = sender
+        msg["To"] = receiver
+        msg["Subject"] = (
+            f"Eng. Tutor ({user_name}): {topic_title} [Score: {score}/10]"
+        )
+        msg.attach(MIMEText(report_text, "plain"))
 
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
         server.login(sender, password)
         server.send_message(msg)
         server.quit()
     except Exception as e:
         print(f"SMTP Error: {e}")
-    
+
     return report_text
 
 ```
