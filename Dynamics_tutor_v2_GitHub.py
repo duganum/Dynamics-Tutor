@@ -49,7 +49,7 @@ PROBLEMS = load_problems()
 
 # --- Page 0: Name Entry ---
 if st.session_state.user_name is None:
-    st.title("🛡️ Engineering Mechanics Portal")
+    st.title("🛡️ Dynamics Portal")
     st.markdown("### Texas A&M University - Corpus Christi")
     with st.form("name_form"):
         name_input = st.text_input("Enter your Full Name to begin")
